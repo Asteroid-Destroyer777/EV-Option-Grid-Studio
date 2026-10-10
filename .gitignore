@@ -1,0 +1,11 @@
+tools/raw/
+.DS_Store
+
+# Local dependencies and private configuration
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+__pycache__/
+*.pyc

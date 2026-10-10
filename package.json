@@ -1,0 +1,15 @@
+{
+  "name": "ev-option-grid",
+  "version": "0.7.0",
+  "description": "EV-Option Grid — 2D/3D прединвестиционный прототип планирования зарядной сети",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "research:build": "python3 tools/integrate_research.py",
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "data": "python3 tools/fetch_osm.py && python3 tools/build_data.py"
+  },
+  "license": "UNLICENSED"
+}

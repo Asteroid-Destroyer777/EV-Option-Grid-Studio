@@ -1,0 +1,3327 @@
+{
+  "generated_for": "EV-Option Grid — замена синтетического спроса на оценку из открытых данных",
+  "geometry_source": "© участники OpenStreetMap (ODbL), выгрузка Overpass API",
+  "method": "Huff / gravity allocation по сетке 200 м; конкуренция с реальными ЭЗС из OSM",
+  "derived_constants": {
+    "kwh_per_session": {
+      "value": 25.2,
+      "provenance": "derived",
+      "note": "12,6 млн кВт·ч / 500 тыс. сессий — публичные цифры РСЗС по Москве"
+    },
+    "session_minutes": {
+      "value": 27.5,
+      "provenance": "derived",
+      "note": "25.2 кВт·ч при средней отдаче 55 кВт"
+    },
+    "capacity_sessions_per_post_month": {
+      "value": 1592,
+      "provenance": "derived",
+      "note": "24ч/сессию × 30,4 дня — физический потолок при 100% занятости"
+    },
+    "calibration_anchor": {
+      "value": 0.1,
+      "provenance": "rszs",
+      "note": "средняя загрузка московских ЭЗС РСЗС ~10% (ответ в чате соревнования)"
+    }
+  },
+  "assumptions_team": {
+    "avg_delivered_kw": 55.0,
+    "building_weights": {
+      "1": 1.0,
+      "2": 0.85,
+      "4": 0.35,
+      "3": 0.2,
+      "5": 0.0,
+      "0": 0.1
+    },
+    "new_build_bonus": 1.6,
+    "mall_weight": 900.0,
+    "transit_hub_weight": 700.0,
+    "road_flow_weight": {
+      "0": 2.2,
+      "1": 1.4,
+      "2": 0.7,
+      "3": 0.3
+    },
+    "segment_beta_m": {
+      "private": 1200,
+      "corporate": 900,
+      "transit": 600
+    },
+    "fleet_forecast_source": "rszs: ответ в чате — 1 год ~50-60 тыс., 3 года ~150-200 тыс., 5 лет ~300-500 тыс.",
+    "network_growth_index_base": [
+      1.9,
+      2.8,
+      3.4
+    ],
+    "network_growth_note": "САМОЕ СЛАБОЕ ДОПУЩЕНИЕ: рост числа станций в Москве. Опора — законтрактованные +150 станций к нынешним 131. Требует sensitivity-анализа.",
+    "note": "веса заданы командой, не откалиброваны на сессионных данных (их нет без NDA)"
+  },
+  "competition": {
+    "osm_charging_sites": 17,
+    "operators": [
+      "Punkt e",
+      "Volt for drive",
+      "Авилон",
+      "Энергия Москвы",
+      "Яндекс",
+      "Яндекс заправки",
+      "неизвестен"
+    ],
+    "share_of_district_demand_to_competitors": 0.604,
+    "note": "в текущей модели EV-Option Grid конкуренция отсутствует, весь спрос достаётся нашим 6 станциям"
+  },
+  "anchor_crosscheck": {
+    "alltime_utilization_range": [
+      0.0194,
+      0.0952
+    ],
+    "current_stated_utilization": 0.1,
+    "grid": {
+      "30 мес × 55 станций × 2 поста": 0.0952,
+      "30 мес × 55 станций × 3 поста": 0.0634,
+      "30 мес × 75 станций × 2 поста": 0.0698,
+      "30 мес × 75 станций × 3 поста": 0.0465,
+      "30 мес × 100 станций × 2 поста": 0.0523,
+      "30 мес × 100 станций × 3 поста": 0.0349,
+      "42 мес × 55 станций × 2 поста": 0.068,
+      "42 мес × 55 станций × 3 поста": 0.0453,
+      "42 мес × 75 станций × 2 поста": 0.0498,
+      "42 мес × 75 станций × 3 поста": 0.0332,
+      "42 мес × 100 станций × 2 поста": 0.0374,
+      "42 мес × 100 станций × 3 поста": 0.0249,
+      "54 мес × 55 станций × 2 поста": 0.0529,
+      "54 мес × 55 станций × 3 поста": 0.0352,
+      "54 мес × 75 станций × 2 поста": 0.0388,
+      "54 мес × 75 станций × 3 поста": 0.0258,
+      "54 мес × 100 станций × 2 поста": 0.0291,
+      "54 мес × 100 станций × 3 поста": 0.0194
+    },
+    "what_this_proves": "только то, что средняя за историю ниже заявленных сегодня 10% при любых правдоподобных допущениях (диапазон 1.9%–9.5%). Тест односторонний: якорь 20% он бы тоже не отверг.",
+    "what_this_does_not_prove": "что якорь 10% верен. Это допущение, взятое со слов заказчика."
+  },
+  "demand_cells": 512,
+  "stations": [
+    {
+      "id": "ZIL-01",
+      "posts": 8,
+      "sessions_per_month": 1285,
+      "capacity_per_month": 12739,
+      "utilization": 0.1008,
+      "mix": {
+        "corporate": 0.352,
+        "private": 0.351,
+        "transit": 0.296
+      },
+      "old_sessions_per_month": 8420,
+      "old_utilization_if_48min": 1.1541
+    },
+    {
+      "id": "ZIL-02",
+      "posts": 6,
+      "sessions_per_month": 1006,
+      "capacity_per_month": 9554,
+      "utilization": 0.1052,
+      "mix": {
+        "corporate": 0.375,
+        "private": 0.355,
+        "transit": 0.27
+      },
+      "old_sessions_per_month": 3650,
+      "old_utilization_if_48min": 0.667
+    },
+    {
+      "id": "ZIL-03",
+      "posts": 4,
+      "sessions_per_month": 733,
+      "capacity_per_month": 6370,
+      "utilization": 0.1151,
+      "mix": {
+        "corporate": 0.383,
+        "private": 0.357,
+        "transit": 0.261
+      },
+      "old_sessions_per_month": 1350,
+      "old_utilization_if_48min": 0.3701
+    },
+    {
+      "id": "ZIL-04",
+      "posts": 6,
+      "sessions_per_month": 989,
+      "capacity_per_month": 9554,
+      "utilization": 0.1035,
+      "mix": {
+        "corporate": 0.373,
+        "private": 0.348,
+        "transit": 0.279
+      },
+      "old_sessions_per_month": 4650,
+      "old_utilization_if_48min": 0.8498
+    },
+    {
+      "id": "ZIL-05",
+      "posts": 4,
+      "sessions_per_month": 665,
+      "capacity_per_month": 6370,
+      "utilization": 0.1044,
+      "mix": {
+        "corporate": 0.38,
+        "private": 0.383,
+        "transit": 0.236
+      },
+      "old_sessions_per_month": 3300,
+      "old_utilization_if_48min": 0.9046
+    },
+    {
+      "id": "ZIL-06",
+      "posts": 6,
+      "sessions_per_month": 737,
+      "capacity_per_month": 9554,
+      "utilization": 0.0772,
+      "mix": {
+        "corporate": 0.449,
+        "private": 0.36,
+        "transit": 0.191
+      },
+      "old_sessions_per_month": 3100,
+      "old_utilization_if_48min": 0.5665
+    }
+  ],
+  "candidates": {
+    "note": "новая станция на 2 поста в каждой доступной ячейке; net_gain = перехват минус каннибализация собственной сети. Это и есть «список площадок с баллами».",
+    "evaluated": 270,
+    "shortlist_min_distance_m": 500,
+    "top": [
+      {
+        "x": -1500.0,
+        "z": 1700.0,
+        "sessions_per_month": 685,
+        "utilization": 0.2152,
+        "cannibalized_from_own": 130,
+        "net_gain": 556,
+        "lat": 55.69263,
+        "lon": 37.62208,
+        "landmarks": [
+          "Бизнес-центр \"Чайка-Плаза\" — 202 м",
+          "Федеральный центр гигиены и эпидемиологи — 341 м",
+          "Верхние Котлы (станция) — 342 м",
+          "Бизнес-центр «DM Tower» — 354 м",
+          "Верхние Котлы (станция) — 431 м"
+        ],
+        "nearest_competitor_m": 1645
+      },
+      {
+        "x": -1900.0,
+        "z": 1300.0,
+        "sessions_per_month": 630,
+        "utilization": 0.198,
+        "cannibalized_from_own": 116,
+        "net_gain": 515,
+        "lat": 55.69624,
+        "lon": 37.61571,
+        "landmarks": [
+          "Детский парк — 391 м",
+          "Парк у пруда Бекет — 420 м",
+          "Детский парк — 449 м",
+          "Бизнес-центр \"Агрико\" — 455 м",
+          "Федеральный центр гигиены и эпидемиологи — 485 м"
+        ],
+        "nearest_competitor_m": 1416
+      },
+      {
+        "x": -1300.0,
+        "z": 1100.0,
+        "sessions_per_month": 619,
+        "utilization": 0.1943,
+        "cannibalized_from_own": 138,
+        "net_gain": 481,
+        "lat": 55.69805,
+        "lon": 37.62527,
+        "landmarks": [
+          "Жилой комплекс «Новоданиловская набережн — 106 м",
+          "Бизнес-центр \"Даниловский форт\" — 156 м",
+          "Бизнес-центр \"Агрико\" — 182 м",
+          "Детский парк — 201 м",
+          "Деловой квартал \"Даниловская мануфактура — 217 м"
+        ],
+        "nearest_competitor_m": 1172
+      },
+      {
+        "x": -900.0,
+        "z": 1500.0,
+        "sessions_per_month": 593,
+        "utilization": 0.1861,
+        "cannibalized_from_own": 145,
+        "net_gain": 448,
+        "lat": 55.69443,
+        "lon": 37.63165,
+        "landmarks": [
+          "Бизнес-центр «DM Tower» — 405 м",
+          "Бизнес-центр \"Чайка-Плаза\" — 431 м",
+          "Бизнес-центр \"Даниловский форт\" — 469 м",
+          "Федеральный центр гигиены и эпидемиологи — 536 м",
+          "Жилой комплекс «Новоданиловская набережн — 543 м"
+        ],
+        "nearest_competitor_m": 1069
+      },
+      {
+        "x": -1700.0,
+        "z": 700.0,
+        "sessions_per_month": 551,
+        "utilization": 0.1731,
+        "cannibalized_from_own": 116,
+        "net_gain": 435,
+        "lat": 55.70167,
+        "lon": 37.61889,
+        "landmarks": [
+          "ГСК Тульский 54 — 126 м",
+          "Автотранспортная служба — 319 м",
+          "Деловой квартал \"Даниловская мануфактура — 354 м",
+          "VIP — 394 м",
+          "Жилой комплекс «Донской квартал» — 424 м"
+        ],
+        "nearest_competitor_m": 928
+      },
+      {
+        "x": -1300.0,
+        "z": 300.0,
+        "sessions_per_month": 561,
+        "utilization": 0.1762,
+        "cannibalized_from_own": 132,
+        "net_gain": 429,
+        "lat": 55.70529,
+        "lon": 37.62527,
+        "landmarks": [
+          "VIP — 101 м",
+          "VIP — 114 м",
+          "Бизнес-центр «W-Plaza» — 116 м",
+          "Тульская (станция) — 123 м",
+          "VIP — 194 м"
+        ],
+        "nearest_competitor_m": 781
+      },
+      {
+        "x": -900.0,
+        "z": 700.0,
+        "sessions_per_month": 569,
+        "utilization": 0.1787,
+        "cannibalized_from_own": 152,
+        "net_gain": 418,
+        "lat": 55.70167,
+        "lon": 37.63165,
+        "landmarks": [
+          "Очистное сооружение №1 — 11 м",
+          "НПО «Гелиймаш» — 81 м",
+          "Технопарк ЗИЛ — 157 м",
+          "Технопарк ЗИЛ — 228 м",
+          "VIP — 491 м"
+        ],
+        "nearest_competitor_m": 635
+      },
+      {
+        "x": -500.0,
+        "z": 1100.0,
+        "sessions_per_month": 585,
+        "utilization": 0.1835,
+        "cannibalized_from_own": 175,
+        "net_gain": 409,
+        "lat": 55.69805,
+        "lon": 37.63803,
+        "landmarks": [
+          "Парк «Тюфелева роща» — 278 м",
+          "Технопарк ЗИЛ — 462 м",
+          "ЗИЛ (станция) — 469 м",
+          "Троицкая линия Московского метрополитена — 487 м",
+          "Перестройка цеха в гараж — 513 м"
+        ],
+        "nearest_competitor_m": 507
+      },
+      {
+        "x": -1700.0,
+        "z": -100.0,
+        "sessions_per_month": 475,
+        "utilization": 0.1491,
+        "cannibalized_from_own": 108,
+        "net_gain": 367,
+        "lat": 55.7089,
+        "lon": 37.61889,
+        "landmarks": [
+          "Жилой комплекс «Данилов дом» — 64 м",
+          "Московские кабельные сети — 147 м",
+          "Ереван Плаза (ТЦ) — 204 м",
+          "Мангазея на Тульской — 236 м",
+          "Тульская (станция) — 247 м"
+        ],
+        "nearest_competitor_m": 322
+      },
+      {
+        "x": 100.0,
+        "z": 1100.0,
+        "sessions_per_month": 573,
+        "utilization": 0.1799,
+        "cannibalized_from_own": 207,
+        "net_gain": 366,
+        "lat": 55.69805,
+        "lon": 37.64759,
+        "landmarks": [
+          "ЗИЛ (станция) — 19 м",
+          "Троицкая линия Московского метрополитена — 122 м",
+          "ЗИЛ (станция) — 193 м",
+          "Кожухово (станция) — 309 м",
+          "7-я очередь — 333 м"
+        ],
+        "nearest_competitor_m": 510
+      },
+      {
+        "x": -300.0,
+        "z": 500.0,
+        "sessions_per_month": 536,
+        "utilization": 0.1683,
+        "cannibalized_from_own": 177,
+        "net_gain": 358,
+        "lat": 55.70348,
+        "lon": 37.64122,
+        "landmarks": [
+          "Перестройка цеха в гараж — 162 м",
+          "Ривьера (ТЦ) — 197 м",
+          "ЦСКА Арена — 307 м",
+          "Технопарк ЗИЛ — 419 м",
+          "А22 — 421 м"
+        ],
+        "nearest_competitor_m": 153
+      },
+      {
+        "x": -900.0,
+        "z": -100.0,
+        "sessions_per_month": 479,
+        "utilization": 0.1504,
+        "cannibalized_from_own": 135,
+        "net_gain": 344,
+        "lat": 55.7089,
+        "lon": 37.63165,
+        "landmarks": [
+          "Бизнес-центр «Гамма» — 270 м",
+          "Forst — 300 м",
+          "Даниловский строительный завод — 320 м",
+          "Жилой комплекс \"Insider\" — 351 м",
+          "Бизнес-центр «Центр-Т» — 387 м"
+        ],
+        "nearest_competitor_m": 438
+      },
+      {
+        "x": 300.0,
+        "z": 500.0,
+        "sessions_per_month": 503,
+        "utilization": 0.158,
+        "cannibalized_from_own": 196,
+        "net_gain": 307,
+        "lat": 55.70348,
+        "lon": 37.65078,
+        "landmarks": [
+          "ТЭЦ-9 — 227 м",
+          "ТЭЦ ВТИ — 236 м",
+          "Снос ЗИЛа и редевелопмент территории (пр — 255 м",
+          "ГСК Автомобилист — 309 м",
+          "Олимпийский центр синхронного плавания А — 337 м"
+        ],
+        "nearest_competitor_m": 442
+      },
+      {
+        "x": -300.0,
+        "z": -100.0,
+        "sessions_per_month": 465,
+        "utilization": 0.1459,
+        "cannibalized_from_own": 160,
+        "net_gain": 305,
+        "lat": 55.7089,
+        "lon": 37.64122,
+        "landmarks": [
+          "Бизнес-центр \"H2O Plaza\" — 256 м",
+          "Даниловский строительный завод — 293 м",
+          "Жилой комплекс «Резиденции композиторов» — 313 м",
+          "Бизнес-центр \"AFI на Павелецкой\" — 405 м",
+          "Жилой комплекс \"Pave\" — 410 м"
+        ],
+        "nearest_competitor_m": 443
+      },
+      {
+        "x": -1300.0,
+        "z": -700.0,
+        "sessions_per_month": 400,
+        "utilization": 0.1256,
+        "cannibalized_from_own": 111,
+        "net_gain": 289,
+        "lat": 55.71433,
+        "lon": 37.62527,
+        "landmarks": [
+          "Жилой комплекс \"Logos\" — 122 м",
+          "Московский монетный двор — 130 м",
+          "Сквер Чингиза Айтматова — 237 м",
+          "Завод холодильного машиностроения «Искра — 308 м",
+          "Жилой комплекс «Play» — 530 м"
+        ],
+        "nearest_competitor_m": 411
+      }
+    ],
+    "all": [
+      {
+        "x": -1500.0,
+        "z": 1700.0,
+        "sessions_per_month": 685,
+        "utilization": 0.2152,
+        "cannibalized_from_own": 130,
+        "net_gain": 556,
+        "lat": 55.69263,
+        "lon": 37.62208,
+        "landmarks": [
+          "Бизнес-центр \"Чайка-Плаза\" — 202 м",
+          "Федеральный центр гигиены и эпидемиологи — 341 м",
+          "Верхние Котлы (станция) — 342 м",
+          "Бизнес-центр «DM Tower» — 354 м",
+          "Верхние Котлы (станция) — 431 м"
+        ],
+        "nearest_competitor_m": 1645
+      },
+      {
+        "x": -1500.0,
+        "z": 1500.0,
+        "sessions_per_month": 673,
+        "utilization": 0.2113,
+        "cannibalized_from_own": 132,
+        "net_gain": 541,
+        "lat": 55.69443,
+        "lon": 37.62208
+      },
+      {
+        "x": -1700.0,
+        "z": 1300.0,
+        "sessions_per_month": 648,
+        "utilization": 0.2034,
+        "cannibalized_from_own": 124,
+        "net_gain": 524,
+        "lat": 55.69624,
+        "lon": 37.61889
+      },
+      {
+        "x": -1300.0,
+        "z": 1700.0,
+        "sessions_per_month": 651,
+        "utilization": 0.2045,
+        "cannibalized_from_own": 132,
+        "net_gain": 519,
+        "lat": 55.69263,
+        "lon": 37.62527
+      },
+      {
+        "x": -1500.0,
+        "z": 1300.0,
+        "sessions_per_month": 650,
+        "utilization": 0.204,
+        "cannibalized_from_own": 132,
+        "net_gain": 518,
+        "lat": 55.69624,
+        "lon": 37.62208
+      },
+      {
+        "x": -1900.0,
+        "z": 1300.0,
+        "sessions_per_month": 630,
+        "utilization": 0.198,
+        "cannibalized_from_own": 116,
+        "net_gain": 515,
+        "lat": 55.69624,
+        "lon": 37.61571,
+        "landmarks": [
+          "Детский парк — 391 м",
+          "Парк у пруда Бекет — 420 м",
+          "Детский парк — 449 м",
+          "Бизнес-центр \"Агрико\" — 455 м",
+          "Федеральный центр гигиены и эпидемиологи — 485 м"
+        ],
+        "nearest_competitor_m": 1416
+      },
+      {
+        "x": -1300.0,
+        "z": 1500.0,
+        "sessions_per_month": 652,
+        "utilization": 0.2046,
+        "cannibalized_from_own": 136,
+        "net_gain": 515,
+        "lat": 55.69443,
+        "lon": 37.62527
+      },
+      {
+        "x": -1300.0,
+        "z": 1300.0,
+        "sessions_per_month": 641,
+        "utilization": 0.2012,
+        "cannibalized_from_own": 139,
+        "net_gain": 502,
+        "lat": 55.69624,
+        "lon": 37.62527
+      },
+      {
+        "x": -1500.0,
+        "z": 1100.0,
+        "sessions_per_month": 621,
+        "utilization": 0.1951,
+        "cannibalized_from_own": 130,
+        "net_gain": 491,
+        "lat": 55.69805,
+        "lon": 37.62208
+      },
+      {
+        "x": -1700.0,
+        "z": 1100.0,
+        "sessions_per_month": 613,
+        "utilization": 0.1925,
+        "cannibalized_from_own": 122,
+        "net_gain": 491,
+        "lat": 55.69805,
+        "lon": 37.61889
+      },
+      {
+        "x": -1300.0,
+        "z": 1100.0,
+        "sessions_per_month": 619,
+        "utilization": 0.1943,
+        "cannibalized_from_own": 138,
+        "net_gain": 481,
+        "lat": 55.69805,
+        "lon": 37.62527,
+        "landmarks": [
+          "Жилой комплекс «Новоданиловская набережн — 106 м",
+          "Бизнес-центр \"Даниловский форт\" — 156 м",
+          "Бизнес-центр \"Агрико\" — 182 м",
+          "Детский парк — 201 м",
+          "Деловой квартал \"Даниловская мануфактура — 217 м"
+        ],
+        "nearest_competitor_m": 1172
+      },
+      {
+        "x": -1100.0,
+        "z": 1700.0,
+        "sessions_per_month": 612,
+        "utilization": 0.1922,
+        "cannibalized_from_own": 134,
+        "net_gain": 478,
+        "lat": 55.69263,
+        "lon": 37.62846
+      },
+      {
+        "x": -1500.0,
+        "z": 900.0,
+        "sessions_per_month": 593,
+        "utilization": 0.1863,
+        "cannibalized_from_own": 128,
+        "net_gain": 465,
+        "lat": 55.69986,
+        "lon": 37.62208
+      },
+      {
+        "x": -1100.0,
+        "z": 1100.0,
+        "sessions_per_month": 608,
+        "utilization": 0.191,
+        "cannibalized_from_own": 145,
+        "net_gain": 463,
+        "lat": 55.69805,
+        "lon": 37.62846
+      },
+      {
+        "x": -1700.0,
+        "z": 900.0,
+        "sessions_per_month": 580,
+        "utilization": 0.182,
+        "cannibalized_from_own": 119,
+        "net_gain": 461,
+        "lat": 55.69986,
+        "lon": 37.61889
+      },
+      {
+        "x": -1300.0,
+        "z": 900.0,
+        "sessions_per_month": 596,
+        "utilization": 0.1873,
+        "cannibalized_from_own": 136,
+        "net_gain": 460,
+        "lat": 55.69986,
+        "lon": 37.62527
+      },
+      {
+        "x": -900.0,
+        "z": 1300.0,
+        "sessions_per_month": 600,
+        "utilization": 0.1885,
+        "cannibalized_from_own": 151,
+        "net_gain": 450,
+        "lat": 55.69624,
+        "lon": 37.63165
+      },
+      {
+        "x": -900.0,
+        "z": 1500.0,
+        "sessions_per_month": 593,
+        "utilization": 0.1861,
+        "cannibalized_from_own": 145,
+        "net_gain": 448,
+        "lat": 55.69443,
+        "lon": 37.63165,
+        "landmarks": [
+          "Бизнес-центр «DM Tower» — 405 м",
+          "Бизнес-центр \"Чайка-Плаза\" — 431 м",
+          "Бизнес-центр \"Даниловский форт\" — 469 м",
+          "Федеральный центр гигиены и эпидемиологи — 536 м",
+          "Жилой комплекс «Новоданиловская набережн — 543 м"
+        ],
+        "nearest_competitor_m": 1069
+      },
+      {
+        "x": -1100.0,
+        "z": 900.0,
+        "sessions_per_month": 592,
+        "utilization": 0.1859,
+        "cannibalized_from_own": 144,
+        "net_gain": 447,
+        "lat": 55.69986,
+        "lon": 37.62846
+      },
+      {
+        "x": -1900.0,
+        "z": 900.0,
+        "sessions_per_month": 555,
+        "utilization": 0.1742,
+        "cannibalized_from_own": 109,
+        "net_gain": 445,
+        "lat": 55.69986,
+        "lon": 37.61571
+      },
+      {
+        "x": -1500.0,
+        "z": 700.0,
+        "sessions_per_month": 570,
+        "utilization": 0.1789,
+        "cannibalized_from_own": 125,
+        "net_gain": 444,
+        "lat": 55.70167,
+        "lon": 37.62208
+      },
+      {
+        "x": -1300.0,
+        "z": 700.0,
+        "sessions_per_month": 577,
+        "utilization": 0.1813,
+        "cannibalized_from_own": 134,
+        "net_gain": 443,
+        "lat": 55.70167,
+        "lon": 37.62527
+      },
+      {
+        "x": -900.0,
+        "z": 1100.0,
+        "sessions_per_month": 597,
+        "utilization": 0.1876,
+        "cannibalized_from_own": 154,
+        "net_gain": 443,
+        "lat": 55.69805,
+        "lon": 37.63165
+      },
+      {
+        "x": -900.0,
+        "z": 1700.0,
+        "sessions_per_month": 575,
+        "utilization": 0.1805,
+        "cannibalized_from_own": 136,
+        "net_gain": 438,
+        "lat": 55.69263,
+        "lon": 37.63165
+      },
+      {
+        "x": -1700.0,
+        "z": 700.0,
+        "sessions_per_month": 551,
+        "utilization": 0.1731,
+        "cannibalized_from_own": 116,
+        "net_gain": 435,
+        "lat": 55.70167,
+        "lon": 37.61889,
+        "landmarks": [
+          "ГСК Тульский 54 — 126 м",
+          "Автотранспортная служба — 319 м",
+          "Деловой квартал \"Даниловская мануфактура — 354 м",
+          "VIP — 394 м",
+          "Жилой комплекс «Донской квартал» — 424 м"
+        ],
+        "nearest_competitor_m": 928
+      },
+      {
+        "x": -1300.0,
+        "z": 500.0,
+        "sessions_per_month": 565,
+        "utilization": 0.1775,
+        "cannibalized_from_own": 133,
+        "net_gain": 433,
+        "lat": 55.70348,
+        "lon": 37.62527
+      },
+      {
+        "x": -1100.0,
+        "z": 700.0,
+        "sessions_per_month": 575,
+        "utilization": 0.1806,
+        "cannibalized_from_own": 143,
+        "net_gain": 433,
+        "lat": 55.70167,
+        "lon": 37.62846
+      },
+      {
+        "x": -900.0,
+        "z": 900.0,
+        "sessions_per_month": 586,
+        "utilization": 0.184,
+        "cannibalized_from_own": 154,
+        "net_gain": 432,
+        "lat": 55.69986,
+        "lon": 37.63165
+      },
+      {
+        "x": -1500.0,
+        "z": 500.0,
+        "sessions_per_month": 553,
+        "utilization": 0.1737,
+        "cannibalized_from_own": 124,
+        "net_gain": 430,
+        "lat": 55.70348,
+        "lon": 37.62208
+      },
+      {
+        "x": -1300.0,
+        "z": 300.0,
+        "sessions_per_month": 561,
+        "utilization": 0.1762,
+        "cannibalized_from_own": 132,
+        "net_gain": 429,
+        "lat": 55.70529,
+        "lon": 37.62527,
+        "landmarks": [
+          "VIP — 101 м",
+          "VIP — 114 м",
+          "Бизнес-центр «W-Plaza» — 116 м",
+          "Тульская (станция) — 123 м",
+          "VIP — 194 м"
+        ],
+        "nearest_competitor_m": 781
+      },
+      {
+        "x": -700.0,
+        "z": 1100.0,
+        "sessions_per_month": 590,
+        "utilization": 0.1853,
+        "cannibalized_from_own": 164,
+        "net_gain": 426,
+        "lat": 55.69805,
+        "lon": 37.63484
+      },
+      {
+        "x": -700.0,
+        "z": 1300.0,
+        "sessions_per_month": 586,
+        "utilization": 0.1838,
+        "cannibalized_from_own": 159,
+        "net_gain": 426,
+        "lat": 55.69624,
+        "lon": 37.63484
+      },
+      {
+        "x": -1100.0,
+        "z": 500.0,
+        "sessions_per_month": 561,
+        "utilization": 0.1761,
+        "cannibalized_from_own": 140,
+        "net_gain": 420,
+        "lat": 55.70348,
+        "lon": 37.62846
+      },
+      {
+        "x": -1500.0,
+        "z": 300.0,
+        "sessions_per_month": 540,
+        "utilization": 0.1696,
+        "cannibalized_from_own": 122,
+        "net_gain": 418,
+        "lat": 55.70529,
+        "lon": 37.62208
+      },
+      {
+        "x": -900.0,
+        "z": 700.0,
+        "sessions_per_month": 569,
+        "utilization": 0.1787,
+        "cannibalized_from_own": 152,
+        "net_gain": 418,
+        "lat": 55.70167,
+        "lon": 37.63165,
+        "landmarks": [
+          "Очистное сооружение №1 — 11 м",
+          "НПО «Гелиймаш» — 81 м",
+          "Технопарк ЗИЛ — 157 м",
+          "Технопарк ЗИЛ — 228 м",
+          "VIP — 491 м"
+        ],
+        "nearest_competitor_m": 635
+      },
+      {
+        "x": -700.0,
+        "z": 1500.0,
+        "sessions_per_month": 569,
+        "utilization": 0.1785,
+        "cannibalized_from_own": 151,
+        "net_gain": 418,
+        "lat": 55.69443,
+        "lon": 37.63484
+      },
+      {
+        "x": -1900.0,
+        "z": 700.0,
+        "sessions_per_month": 523,
+        "utilization": 0.1641,
+        "cannibalized_from_own": 106,
+        "net_gain": 416,
+        "lat": 55.70167,
+        "lon": 37.61571
+      },
+      {
+        "x": -700.0,
+        "z": 900.0,
+        "sessions_per_month": 581,
+        "utilization": 0.1824,
+        "cannibalized_from_own": 164,
+        "net_gain": 416,
+        "lat": 55.69986,
+        "lon": 37.63484
+      },
+      {
+        "x": -1700.0,
+        "z": 500.0,
+        "sessions_per_month": 529,
+        "utilization": 0.1661,
+        "cannibalized_from_own": 114,
+        "net_gain": 415,
+        "lat": 55.70348,
+        "lon": 37.61889
+      },
+      {
+        "x": -500.0,
+        "z": 1100.0,
+        "sessions_per_month": 585,
+        "utilization": 0.1835,
+        "cannibalized_from_own": 175,
+        "net_gain": 409,
+        "lat": 55.69805,
+        "lon": 37.63803,
+        "landmarks": [
+          "Парк «Тюфелева роща» — 278 м",
+          "Технопарк ЗИЛ — 462 м",
+          "ЗИЛ (станция) — 469 м",
+          "Троицкая линия Московского метрополитена — 487 м",
+          "Перестройка цеха в гараж — 513 м"
+        ],
+        "nearest_competitor_m": 507
+      },
+      {
+        "x": -1100.0,
+        "z": 300.0,
+        "sessions_per_month": 545,
+        "utilization": 0.1712,
+        "cannibalized_from_own": 138,
+        "net_gain": 408,
+        "lat": 55.70529,
+        "lon": 37.62846
+      },
+      {
+        "x": -1300.0,
+        "z": 100.0,
+        "sessions_per_month": 531,
+        "utilization": 0.1667,
+        "cannibalized_from_own": 127,
+        "net_gain": 404,
+        "lat": 55.7071,
+        "lon": 37.62527
+      },
+      {
+        "x": -1500.0,
+        "z": 100.0,
+        "sessions_per_month": 524,
+        "utilization": 0.1646,
+        "cannibalized_from_own": 120,
+        "net_gain": 404,
+        "lat": 55.7071,
+        "lon": 37.62208
+      },
+      {
+        "x": -900.0,
+        "z": 500.0,
+        "sessions_per_month": 551,
+        "utilization": 0.1731,
+        "cannibalized_from_own": 148,
+        "net_gain": 403,
+        "lat": 55.70348,
+        "lon": 37.63165
+      },
+      {
+        "x": -700.0,
+        "z": 1700.0,
+        "sessions_per_month": 543,
+        "utilization": 0.1705,
+        "cannibalized_from_own": 140,
+        "net_gain": 403,
+        "lat": 55.69263,
+        "lon": 37.63484
+      },
+      {
+        "x": -700.0,
+        "z": 700.0,
+        "sessions_per_month": 564,
+        "utilization": 0.1771,
+        "cannibalized_from_own": 162,
+        "net_gain": 402,
+        "lat": 55.70167,
+        "lon": 37.63484
+      },
+      {
+        "x": -500.0,
+        "z": 900.0,
+        "sessions_per_month": 576,
+        "utilization": 0.1809,
+        "cannibalized_from_own": 175,
+        "net_gain": 401,
+        "lat": 55.69986,
+        "lon": 37.63803
+      },
+      {
+        "x": -1700.0,
+        "z": 300.0,
+        "sessions_per_month": 511,
+        "utilization": 0.1605,
+        "cannibalized_from_own": 112,
+        "net_gain": 399,
+        "lat": 55.70529,
+        "lon": 37.61889
+      },
+      {
+        "x": -300.0,
+        "z": 1100.0,
+        "sessions_per_month": 581,
+        "utilization": 0.1825,
+        "cannibalized_from_own": 187,
+        "net_gain": 395,
+        "lat": 55.69805,
+        "lon": 37.64122
+      },
+      {
+        "x": -1500.0,
+        "z": -100.0,
+        "sessions_per_month": 512,
+        "utilization": 0.1609,
+        "cannibalized_from_own": 118,
+        "net_gain": 394,
+        "lat": 55.7089,
+        "lon": 37.62208
+      },
+      {
+        "x": -1900.0,
+        "z": 500.0,
+        "sessions_per_month": 497,
+        "utilization": 0.1561,
+        "cannibalized_from_own": 104,
+        "net_gain": 393,
+        "lat": 55.70348,
+        "lon": 37.61571
+      },
+      {
+        "x": -500.0,
+        "z": 1500.0,
+        "sessions_per_month": 551,
+        "utilization": 0.1729,
+        "cannibalized_from_own": 159,
+        "net_gain": 392,
+        "lat": 55.69443,
+        "lon": 37.63803
+      },
+      {
+        "x": -300.0,
+        "z": 1300.0,
+        "sessions_per_month": 570,
+        "utilization": 0.1789,
+        "cannibalized_from_own": 180,
+        "net_gain": 390,
+        "lat": 55.69624,
+        "lon": 37.64122
+      },
+      {
+        "x": -1100.0,
+        "z": 100.0,
+        "sessions_per_month": 520,
+        "utilization": 0.1633,
+        "cannibalized_from_own": 134,
+        "net_gain": 387,
+        "lat": 55.7071,
+        "lon": 37.62846
+      },
+      {
+        "x": -500.0,
+        "z": 700.0,
+        "sessions_per_month": 559,
+        "utilization": 0.1755,
+        "cannibalized_from_own": 172,
+        "net_gain": 387,
+        "lat": 55.70167,
+        "lon": 37.63803
+      },
+      {
+        "x": -900.0,
+        "z": 300.0,
+        "sessions_per_month": 532,
+        "utilization": 0.1669,
+        "cannibalized_from_own": 145,
+        "net_gain": 387,
+        "lat": 55.70529,
+        "lon": 37.63165
+      },
+      {
+        "x": -700.0,
+        "z": 500.0,
+        "sessions_per_month": 544,
+        "utilization": 0.1708,
+        "cannibalized_from_own": 158,
+        "net_gain": 386,
+        "lat": 55.70348,
+        "lon": 37.63484
+      },
+      {
+        "x": -300.0,
+        "z": 900.0,
+        "sessions_per_month": 572,
+        "utilization": 0.1796,
+        "cannibalized_from_own": 186,
+        "net_gain": 386,
+        "lat": 55.69986,
+        "lon": 37.64122
+      },
+      {
+        "x": -1700.0,
+        "z": 100.0,
+        "sessions_per_month": 495,
+        "utilization": 0.1554,
+        "cannibalized_from_own": 110,
+        "net_gain": 385,
+        "lat": 55.7071,
+        "lon": 37.61889
+      },
+      {
+        "x": -100.0,
+        "z": 1300.0,
+        "sessions_per_month": 573,
+        "utilization": 0.1799,
+        "cannibalized_from_own": 193,
+        "net_gain": 380,
+        "lat": 55.69624,
+        "lon": 37.64441
+      },
+      {
+        "x": -100.0,
+        "z": 1100.0,
+        "sessions_per_month": 578,
+        "utilization": 0.1814,
+        "cannibalized_from_own": 197,
+        "net_gain": 380,
+        "lat": 55.69805,
+        "lon": 37.64441
+      },
+      {
+        "x": -1300.0,
+        "z": -100.0,
+        "sessions_per_month": 502,
+        "utilization": 0.1578,
+        "cannibalized_from_own": 124,
+        "net_gain": 379,
+        "lat": 55.7089,
+        "lon": 37.62527
+      },
+      {
+        "x": -1900.0,
+        "z": 300.0,
+        "sessions_per_month": 476,
+        "utilization": 0.1496,
+        "cannibalized_from_own": 102,
+        "net_gain": 374,
+        "lat": 55.70529,
+        "lon": 37.61571
+      },
+      {
+        "x": -500.0,
+        "z": 500.0,
+        "sessions_per_month": 539,
+        "utilization": 0.1694,
+        "cannibalized_from_own": 168,
+        "net_gain": 372,
+        "lat": 55.70348,
+        "lon": 37.63803
+      },
+      {
+        "x": -500.0,
+        "z": 1700.0,
+        "sessions_per_month": 518,
+        "utilization": 0.1626,
+        "cannibalized_from_own": 146,
+        "net_gain": 372,
+        "lat": 55.69263,
+        "lon": 37.63803
+      },
+      {
+        "x": -300.0,
+        "z": 700.0,
+        "sessions_per_month": 554,
+        "utilization": 0.174,
+        "cannibalized_from_own": 182,
+        "net_gain": 372,
+        "lat": 55.70167,
+        "lon": 37.64122
+      },
+      {
+        "x": -100.0,
+        "z": 900.0,
+        "sessions_per_month": 567,
+        "utilization": 0.178,
+        "cannibalized_from_own": 196,
+        "net_gain": 371,
+        "lat": 55.69986,
+        "lon": 37.64441
+      },
+      {
+        "x": -700.0,
+        "z": 300.0,
+        "sessions_per_month": 522,
+        "utilization": 0.1638,
+        "cannibalized_from_own": 153,
+        "net_gain": 369,
+        "lat": 55.70529,
+        "lon": 37.63484
+      },
+      {
+        "x": -1700.0,
+        "z": -100.0,
+        "sessions_per_month": 475,
+        "utilization": 0.1491,
+        "cannibalized_from_own": 108,
+        "net_gain": 367,
+        "lat": 55.7089,
+        "lon": 37.61889,
+        "landmarks": [
+          "Жилой комплекс «Данилов дом» — 64 м",
+          "Московские кабельные сети — 147 м",
+          "Ереван Плаза (ТЦ) — 204 м",
+          "Мангазея на Тульской — 236 м",
+          "Тульская (станция) — 247 м"
+        ],
+        "nearest_competitor_m": 322
+      },
+      {
+        "x": 100.0,
+        "z": 1100.0,
+        "sessions_per_month": 573,
+        "utilization": 0.1799,
+        "cannibalized_from_own": 207,
+        "net_gain": 366,
+        "lat": 55.69805,
+        "lon": 37.64759,
+        "landmarks": [
+          "ЗИЛ (станция) — 19 м",
+          "Троицкая линия Московского метрополитена — 122 м",
+          "ЗИЛ (станция) — 193 м",
+          "Кожухово (станция) — 309 м",
+          "7-я очередь — 333 м"
+        ],
+        "nearest_competitor_m": 510
+      },
+      {
+        "x": -1100.0,
+        "z": -100.0,
+        "sessions_per_month": 490,
+        "utilization": 0.154,
+        "cannibalized_from_own": 129,
+        "net_gain": 361,
+        "lat": 55.7089,
+        "lon": 37.62846
+      },
+      {
+        "x": -1900.0,
+        "z": 100.0,
+        "sessions_per_month": 458,
+        "utilization": 0.1438,
+        "cannibalized_from_own": 100,
+        "net_gain": 358,
+        "lat": 55.7071,
+        "lon": 37.61571
+      },
+      {
+        "x": -300.0,
+        "z": 500.0,
+        "sessions_per_month": 536,
+        "utilization": 0.1683,
+        "cannibalized_from_own": 177,
+        "net_gain": 358,
+        "lat": 55.70348,
+        "lon": 37.64122,
+        "landmarks": [
+          "Перестройка цеха в гараж — 162 м",
+          "Ривьера (ТЦ) — 197 м",
+          "ЦСКА Арена — 307 м",
+          "Технопарк ЗИЛ — 419 м",
+          "А22 — 421 м"
+        ],
+        "nearest_competitor_m": 153
+      },
+      {
+        "x": 100.0,
+        "z": 900.0,
+        "sessions_per_month": 560,
+        "utilization": 0.1758,
+        "cannibalized_from_own": 204,
+        "net_gain": 356,
+        "lat": 55.69986,
+        "lon": 37.64759
+      },
+      {
+        "x": -500.0,
+        "z": 300.0,
+        "sessions_per_month": 518,
+        "utilization": 0.1625,
+        "cannibalized_from_own": 163,
+        "net_gain": 355,
+        "lat": 55.70529,
+        "lon": 37.63803
+      },
+      {
+        "x": -1500.0,
+        "z": -300.0,
+        "sessions_per_month": 464,
+        "utilization": 0.1456,
+        "cannibalized_from_own": 113,
+        "net_gain": 351,
+        "lat": 55.71071,
+        "lon": 37.62208
+      },
+      {
+        "x": -1300.0,
+        "z": -300.0,
+        "sessions_per_month": 466,
+        "utilization": 0.1462,
+        "cannibalized_from_own": 119,
+        "net_gain": 347,
+        "lat": 55.71071,
+        "lon": 37.62527
+      },
+      {
+        "x": -300.0,
+        "z": 300.0,
+        "sessions_per_month": 519,
+        "utilization": 0.1629,
+        "cannibalized_from_own": 174,
+        "net_gain": 345,
+        "lat": 55.70529,
+        "lon": 37.64122
+      },
+      {
+        "x": -900.0,
+        "z": -100.0,
+        "sessions_per_month": 479,
+        "utilization": 0.1504,
+        "cannibalized_from_own": 135,
+        "net_gain": 344,
+        "lat": 55.7089,
+        "lon": 37.63165,
+        "landmarks": [
+          "Бизнес-центр «Гамма» — 270 м",
+          "Forst — 300 м",
+          "Даниловский строительный завод — 320 м",
+          "Жилой комплекс \"Insider\" — 351 м",
+          "Бизнес-центр «Центр-Т» — 387 м"
+        ],
+        "nearest_competitor_m": 438
+      },
+      {
+        "x": -100.0,
+        "z": 500.0,
+        "sessions_per_month": 527,
+        "utilization": 0.1654,
+        "cannibalized_from_own": 185,
+        "net_gain": 342,
+        "lat": 55.70348,
+        "lon": 37.64441
+      },
+      {
+        "x": -1900.0,
+        "z": -100.0,
+        "sessions_per_month": 439,
+        "utilization": 0.1378,
+        "cannibalized_from_own": 99,
+        "net_gain": 340,
+        "lat": 55.7089,
+        "lon": 37.61571
+      },
+      {
+        "x": -1700.0,
+        "z": -300.0,
+        "sessions_per_month": 444,
+        "utilization": 0.1393,
+        "cannibalized_from_own": 105,
+        "net_gain": 339,
+        "lat": 55.71071,
+        "lon": 37.61889
+      },
+      {
+        "x": 300.0,
+        "z": 900.0,
+        "sessions_per_month": 548,
+        "utilization": 0.1721,
+        "cannibalized_from_own": 211,
+        "net_gain": 338,
+        "lat": 55.69986,
+        "lon": 37.65078
+      },
+      {
+        "x": 300.0,
+        "z": 1100.0,
+        "sessions_per_month": 541,
+        "utilization": 0.1698,
+        "cannibalized_from_own": 205,
+        "net_gain": 335,
+        "lat": 55.69805,
+        "lon": 37.65078
+      },
+      {
+        "x": -1100.0,
+        "z": -300.0,
+        "sessions_per_month": 459,
+        "utilization": 0.144,
+        "cannibalized_from_own": 125,
+        "net_gain": 334,
+        "lat": 55.71071,
+        "lon": 37.62846
+      },
+      {
+        "x": -700.0,
+        "z": -100.0,
+        "sessions_per_month": 471,
+        "utilization": 0.1479,
+        "cannibalized_from_own": 143,
+        "net_gain": 328,
+        "lat": 55.7089,
+        "lon": 37.63484
+      },
+      {
+        "x": -100.0,
+        "z": 300.0,
+        "sessions_per_month": 506,
+        "utilization": 0.1588,
+        "cannibalized_from_own": 180,
+        "net_gain": 326,
+        "lat": 55.70529,
+        "lon": 37.64441
+      },
+      {
+        "x": 100.0,
+        "z": 500.0,
+        "sessions_per_month": 516,
+        "utilization": 0.1621,
+        "cannibalized_from_own": 192,
+        "net_gain": 325,
+        "lat": 55.70348,
+        "lon": 37.64759
+      },
+      {
+        "x": 300.0,
+        "z": 1300.0,
+        "sessions_per_month": 520,
+        "utilization": 0.1631,
+        "cannibalized_from_own": 196,
+        "net_gain": 324,
+        "lat": 55.69624,
+        "lon": 37.65078
+      },
+      {
+        "x": -300.0,
+        "z": 100.0,
+        "sessions_per_month": 489,
+        "utilization": 0.1536,
+        "cannibalized_from_own": 166,
+        "net_gain": 323,
+        "lat": 55.7071,
+        "lon": 37.64122
+      },
+      {
+        "x": 300.0,
+        "z": 700.0,
+        "sessions_per_month": 525,
+        "utilization": 0.1648,
+        "cannibalized_from_own": 203,
+        "net_gain": 322,
+        "lat": 55.70167,
+        "lon": 37.65078
+      },
+      {
+        "x": -900.0,
+        "z": -300.0,
+        "sessions_per_month": 451,
+        "utilization": 0.1417,
+        "cannibalized_from_own": 131,
+        "net_gain": 320,
+        "lat": 55.71071,
+        "lon": 37.63165
+      },
+      {
+        "x": -1900.0,
+        "z": -300.0,
+        "sessions_per_month": 416,
+        "utilization": 0.1305,
+        "cannibalized_from_own": 97,
+        "net_gain": 319,
+        "lat": 55.71071,
+        "lon": 37.61571
+      },
+      {
+        "x": -500.0,
+        "z": -100.0,
+        "sessions_per_month": 467,
+        "utilization": 0.1466,
+        "cannibalized_from_own": 151,
+        "net_gain": 316,
+        "lat": 55.7089,
+        "lon": 37.63803
+      },
+      {
+        "x": -1500.0,
+        "z": -500.0,
+        "sessions_per_month": 424,
+        "utilization": 0.1333,
+        "cannibalized_from_own": 108,
+        "net_gain": 316,
+        "lat": 55.71252,
+        "lon": 37.62208
+      },
+      {
+        "x": 100.0,
+        "z": 300.0,
+        "sessions_per_month": 496,
+        "utilization": 0.1556,
+        "cannibalized_from_own": 186,
+        "net_gain": 310,
+        "lat": 55.70529,
+        "lon": 37.64759
+      },
+      {
+        "x": -100.0,
+        "z": 100.0,
+        "sessions_per_month": 483,
+        "utilization": 0.1518,
+        "cannibalized_from_own": 174,
+        "net_gain": 310,
+        "lat": 55.7071,
+        "lon": 37.64441
+      },
+      {
+        "x": -1700.0,
+        "z": -500.0,
+        "sessions_per_month": 411,
+        "utilization": 0.1289,
+        "cannibalized_from_own": 102,
+        "net_gain": 309,
+        "lat": 55.71252,
+        "lon": 37.61889
+      },
+      {
+        "x": -700.0,
+        "z": -300.0,
+        "sessions_per_month": 446,
+        "utilization": 0.1401,
+        "cannibalized_from_own": 138,
+        "net_gain": 308,
+        "lat": 55.71071,
+        "lon": 37.63484
+      },
+      {
+        "x": 300.0,
+        "z": 500.0,
+        "sessions_per_month": 503,
+        "utilization": 0.158,
+        "cannibalized_from_own": 196,
+        "net_gain": 307,
+        "lat": 55.70348,
+        "lon": 37.65078,
+        "landmarks": [
+          "ТЭЦ-9 — 227 м",
+          "ТЭЦ ВТИ — 236 м",
+          "Снос ЗИЛа и редевелопмент территории (пр — 255 м",
+          "ГСК Автомобилист — 309 м",
+          "Олимпийский центр синхронного плавания А — 337 м"
+        ],
+        "nearest_competitor_m": 442
+      },
+      {
+        "x": 500.0,
+        "z": 900.0,
+        "sessions_per_month": 512,
+        "utilization": 0.1609,
+        "cannibalized_from_own": 205,
+        "net_gain": 307,
+        "lat": 55.69986,
+        "lon": 37.65397
+      },
+      {
+        "x": -1100.0,
+        "z": -500.0,
+        "sessions_per_month": 428,
+        "utilization": 0.1344,
+        "cannibalized_from_own": 121,
+        "net_gain": 307,
+        "lat": 55.71252,
+        "lon": 37.62846
+      },
+      {
+        "x": -300.0,
+        "z": -100.0,
+        "sessions_per_month": 465,
+        "utilization": 0.1459,
+        "cannibalized_from_own": 160,
+        "net_gain": 305,
+        "lat": 55.7089,
+        "lon": 37.64122,
+        "landmarks": [
+          "Бизнес-центр \"H2O Plaza\" — 256 м",
+          "Даниловский строительный завод — 293 м",
+          "Жилой комплекс «Резиденции композиторов» — 313 м",
+          "Бизнес-центр \"AFI на Павелецкой\" — 405 м",
+          "Жилой комплекс \"Pave\" — 410 м"
+        ],
+        "nearest_competitor_m": 443
+      },
+      {
+        "x": 500.0,
+        "z": 700.0,
+        "sessions_per_month": 501,
+        "utilization": 0.1575,
+        "cannibalized_from_own": 202,
+        "net_gain": 299,
+        "lat": 55.70167,
+        "lon": 37.65397
+      },
+      {
+        "x": 500.0,
+        "z": 1300.0,
+        "sessions_per_month": 495,
+        "utilization": 0.1556,
+        "cannibalized_from_own": 196,
+        "net_gain": 299,
+        "lat": 55.69624,
+        "lon": 37.65397
+      },
+      {
+        "x": -900.0,
+        "z": -500.0,
+        "sessions_per_month": 425,
+        "utilization": 0.1336,
+        "cannibalized_from_own": 127,
+        "net_gain": 298,
+        "lat": 55.71252,
+        "lon": 37.63165
+      },
+      {
+        "x": -500.0,
+        "z": -300.0,
+        "sessions_per_month": 444,
+        "utilization": 0.1394,
+        "cannibalized_from_own": 147,
+        "net_gain": 298,
+        "lat": 55.71071,
+        "lon": 37.63803
+      },
+      {
+        "x": 100.0,
+        "z": 100.0,
+        "sessions_per_month": 477,
+        "utilization": 0.1499,
+        "cannibalized_from_own": 181,
+        "net_gain": 296,
+        "lat": 55.7071,
+        "lon": 37.64759
+      },
+      {
+        "x": -1900.0,
+        "z": -500.0,
+        "sessions_per_month": 389,
+        "utilization": 0.1222,
+        "cannibalized_from_own": 94,
+        "net_gain": 295,
+        "lat": 55.71252,
+        "lon": 37.61571
+      },
+      {
+        "x": -100.0,
+        "z": -100.0,
+        "sessions_per_month": 463,
+        "utilization": 0.1455,
+        "cannibalized_from_own": 169,
+        "net_gain": 294,
+        "lat": 55.7089,
+        "lon": 37.64441
+      },
+      {
+        "x": 500.0,
+        "z": 500.0,
+        "sessions_per_month": 488,
+        "utilization": 0.1531,
+        "cannibalized_from_own": 199,
+        "net_gain": 289,
+        "lat": 55.70348,
+        "lon": 37.65397
+      },
+      {
+        "x": -300.0,
+        "z": -300.0,
+        "sessions_per_month": 444,
+        "utilization": 0.1396,
+        "cannibalized_from_own": 156,
+        "net_gain": 289,
+        "lat": 55.71071,
+        "lon": 37.64122
+      },
+      {
+        "x": -1300.0,
+        "z": -700.0,
+        "sessions_per_month": 400,
+        "utilization": 0.1256,
+        "cannibalized_from_own": 111,
+        "net_gain": 289,
+        "lat": 55.71433,
+        "lon": 37.62527,
+        "landmarks": [
+          "Жилой комплекс \"Logos\" — 122 м",
+          "Московский монетный двор — 130 м",
+          "Сквер Чингиза Айтматова — 237 м",
+          "Завод холодильного машиностроения «Искра — 308 м",
+          "Жилой комплекс «Play» — 530 м"
+        ],
+        "nearest_competitor_m": 411
+      },
+      {
+        "x": -1500.0,
+        "z": -700.0,
+        "sessions_per_month": 394,
+        "utilization": 0.1237,
+        "cannibalized_from_own": 106,
+        "net_gain": 288,
+        "lat": 55.71433,
+        "lon": 37.62208
+      },
+      {
+        "x": 500.0,
+        "z": 1500.0,
+        "sessions_per_month": 470,
+        "utilization": 0.1476,
+        "cannibalized_from_own": 185,
+        "net_gain": 285,
+        "lat": 55.69443,
+        "lon": 37.65397
+      },
+      {
+        "x": -1100.0,
+        "z": -700.0,
+        "sessions_per_month": 402,
+        "utilization": 0.1262,
+        "cannibalized_from_own": 117,
+        "net_gain": 285,
+        "lat": 55.71433,
+        "lon": 37.62846
+      },
+      {
+        "x": 300.0,
+        "z": 100.0,
+        "sessions_per_month": 472,
+        "utilization": 0.1484,
+        "cannibalized_from_own": 189,
+        "net_gain": 284,
+        "lat": 55.7071,
+        "lon": 37.65078
+      },
+      {
+        "x": 100.0,
+        "z": -100.0,
+        "sessions_per_month": 462,
+        "utilization": 0.1449,
+        "cannibalized_from_own": 178,
+        "net_gain": 284,
+        "lat": 55.7089,
+        "lon": 37.64759
+      },
+      {
+        "x": -1700.0,
+        "z": -700.0,
+        "sessions_per_month": 382,
+        "utilization": 0.12,
+        "cannibalized_from_own": 99,
+        "net_gain": 283,
+        "lat": 55.71433,
+        "lon": 37.61889
+      },
+      {
+        "x": 700.0,
+        "z": 900.0,
+        "sessions_per_month": 485,
+        "utilization": 0.1523,
+        "cannibalized_from_own": 202,
+        "net_gain": 283,
+        "lat": 55.69986,
+        "lon": 37.65716
+      },
+      {
+        "x": 700.0,
+        "z": 1300.0,
+        "sessions_per_month": 479,
+        "utilization": 0.1505,
+        "cannibalized_from_own": 198,
+        "net_gain": 281,
+        "lat": 55.69624,
+        "lon": 37.65716
+      },
+      {
+        "x": 500.0,
+        "z": 300.0,
+        "sessions_per_month": 477,
+        "utilization": 0.1497,
+        "cannibalized_from_own": 197,
+        "net_gain": 280,
+        "lat": 55.70529,
+        "lon": 37.65397
+      },
+      {
+        "x": -900.0,
+        "z": -700.0,
+        "sessions_per_month": 403,
+        "utilization": 0.1266,
+        "cannibalized_from_own": 124,
+        "net_gain": 279,
+        "lat": 55.71433,
+        "lon": 37.63165
+      },
+      {
+        "x": 700.0,
+        "z": 700.0,
+        "sessions_per_month": 478,
+        "utilization": 0.1501,
+        "cannibalized_from_own": 200,
+        "net_gain": 278,
+        "lat": 55.70167,
+        "lon": 37.65716
+      },
+      {
+        "x": -300.0,
+        "z": -500.0,
+        "sessions_per_month": 428,
+        "utilization": 0.1343,
+        "cannibalized_from_own": 152,
+        "net_gain": 276,
+        "lat": 55.71252,
+        "lon": 37.64122
+      },
+      {
+        "x": 300.0,
+        "z": -100.0,
+        "sessions_per_month": 461,
+        "utilization": 0.1447,
+        "cannibalized_from_own": 186,
+        "net_gain": 275,
+        "lat": 55.7089,
+        "lon": 37.65078
+      },
+      {
+        "x": -700.0,
+        "z": -700.0,
+        "sessions_per_month": 405,
+        "utilization": 0.1273,
+        "cannibalized_from_own": 132,
+        "net_gain": 274,
+        "lat": 55.71433,
+        "lon": 37.63484
+      },
+      {
+        "x": 100.0,
+        "z": -300.0,
+        "sessions_per_month": 447,
+        "utilization": 0.1404,
+        "cannibalized_from_own": 174,
+        "net_gain": 273,
+        "lat": 55.71071,
+        "lon": 37.64759
+      },
+      {
+        "x": 500.0,
+        "z": 100.0,
+        "sessions_per_month": 469,
+        "utilization": 0.1471,
+        "cannibalized_from_own": 196,
+        "net_gain": 273,
+        "lat": 55.7071,
+        "lon": 37.65397
+      },
+      {
+        "x": -1900.0,
+        "z": -700.0,
+        "sessions_per_month": 365,
+        "utilization": 0.1145,
+        "cannibalized_from_own": 93,
+        "net_gain": 272,
+        "lat": 55.71433,
+        "lon": 37.61571
+      },
+      {
+        "x": 700.0,
+        "z": 500.0,
+        "sessions_per_month": 470,
+        "utilization": 0.1476,
+        "cannibalized_from_own": 199,
+        "net_gain": 271,
+        "lat": 55.70348,
+        "lon": 37.65716
+      },
+      {
+        "x": 700.0,
+        "z": 1500.0,
+        "sessions_per_month": 461,
+        "utilization": 0.1448,
+        "cannibalized_from_own": 190,
+        "net_gain": 271,
+        "lat": 55.69443,
+        "lon": 37.65716
+      },
+      {
+        "x": -100.0,
+        "z": -500.0,
+        "sessions_per_month": 431,
+        "utilization": 0.1354,
+        "cannibalized_from_own": 161,
+        "net_gain": 270,
+        "lat": 55.71252,
+        "lon": 37.64441
+      },
+      {
+        "x": -1300.0,
+        "z": -900.0,
+        "sessions_per_month": 377,
+        "utilization": 0.1184,
+        "cannibalized_from_own": 109,
+        "net_gain": 268,
+        "lat": 55.71614,
+        "lon": 37.62527
+      },
+      {
+        "x": -1500.0,
+        "z": -900.0,
+        "sessions_per_month": 371,
+        "utilization": 0.1165,
+        "cannibalized_from_own": 104,
+        "net_gain": 267,
+        "lat": 55.71614,
+        "lon": 37.62208
+      },
+      {
+        "x": 900.0,
+        "z": 1100.0,
+        "sessions_per_month": 470,
+        "utilization": 0.1476,
+        "cannibalized_from_own": 202,
+        "net_gain": 267,
+        "lat": 55.69805,
+        "lon": 37.66035
+      },
+      {
+        "x": 500.0,
+        "z": -100.0,
+        "sessions_per_month": 460,
+        "utilization": 0.1445,
+        "cannibalized_from_own": 194,
+        "net_gain": 266,
+        "lat": 55.7089,
+        "lon": 37.65397
+      },
+      {
+        "x": 700.0,
+        "z": 300.0,
+        "sessions_per_month": 465,
+        "utilization": 0.1461,
+        "cannibalized_from_own": 200,
+        "net_gain": 266,
+        "lat": 55.70529,
+        "lon": 37.65716
+      },
+      {
+        "x": -1100.0,
+        "z": -900.0,
+        "sessions_per_month": 381,
+        "utilization": 0.1196,
+        "cannibalized_from_own": 115,
+        "net_gain": 266,
+        "lat": 55.71614,
+        "lon": 37.62846
+      },
+      {
+        "x": 300.0,
+        "z": -300.0,
+        "sessions_per_month": 449,
+        "utilization": 0.1411,
+        "cannibalized_from_own": 183,
+        "net_gain": 266,
+        "lat": 55.71071,
+        "lon": 37.65078
+      },
+      {
+        "x": 100.0,
+        "z": -500.0,
+        "sessions_per_month": 434,
+        "utilization": 0.1362,
+        "cannibalized_from_own": 170,
+        "net_gain": 264,
+        "lat": 55.71252,
+        "lon": 37.64759
+      },
+      {
+        "x": 900.0,
+        "z": 900.0,
+        "sessions_per_month": 464,
+        "utilization": 0.1456,
+        "cannibalized_from_own": 200,
+        "net_gain": 264,
+        "lat": 55.69986,
+        "lon": 37.66035
+      },
+      {
+        "x": -900.0,
+        "z": -900.0,
+        "sessions_per_month": 384,
+        "utilization": 0.1207,
+        "cannibalized_from_own": 122,
+        "net_gain": 263,
+        "lat": 55.71614,
+        "lon": 37.63165
+      },
+      {
+        "x": -1700.0,
+        "z": -900.0,
+        "sessions_per_month": 360,
+        "utilization": 0.1132,
+        "cannibalized_from_own": 98,
+        "net_gain": 262,
+        "lat": 55.71614,
+        "lon": 37.61889
+      },
+      {
+        "x": 700.0,
+        "z": 100.0,
+        "sessions_per_month": 465,
+        "utilization": 0.1461,
+        "cannibalized_from_own": 203,
+        "net_gain": 262,
+        "lat": 55.7071,
+        "lon": 37.65716
+      },
+      {
+        "x": 900.0,
+        "z": 1500.0,
+        "sessions_per_month": 460,
+        "utilization": 0.1445,
+        "cannibalized_from_own": 198,
+        "net_gain": 262,
+        "lat": 55.69443,
+        "lon": 37.66035
+      },
+      {
+        "x": -100.0,
+        "z": -700.0,
+        "sessions_per_month": 420,
+        "utilization": 0.1319,
+        "cannibalized_from_own": 159,
+        "net_gain": 261,
+        "lat": 55.71433,
+        "lon": 37.64441
+      },
+      {
+        "x": -700.0,
+        "z": -900.0,
+        "sessions_per_month": 389,
+        "utilization": 0.1222,
+        "cannibalized_from_own": 129,
+        "net_gain": 260,
+        "lat": 55.71614,
+        "lon": 37.63484
+      },
+      {
+        "x": 900.0,
+        "z": 700.0,
+        "sessions_per_month": 457,
+        "utilization": 0.1434,
+        "cannibalized_from_own": 198,
+        "net_gain": 259,
+        "lat": 55.70167,
+        "lon": 37.66035
+      },
+      {
+        "x": 1100.0,
+        "z": 1300.0,
+        "sessions_per_month": 465,
+        "utilization": 0.1459,
+        "cannibalized_from_own": 207,
+        "net_gain": 258,
+        "lat": 55.69624,
+        "lon": 37.66354
+      },
+      {
+        "x": 1100.0,
+        "z": 1500.0,
+        "sessions_per_month": 466,
+        "utilization": 0.1463,
+        "cannibalized_from_own": 208,
+        "net_gain": 258,
+        "lat": 55.69443,
+        "lon": 37.66354
+      },
+      {
+        "x": 100.0,
+        "z": -700.0,
+        "sessions_per_month": 422,
+        "utilization": 0.1326,
+        "cannibalized_from_own": 167,
+        "net_gain": 256,
+        "lat": 55.71433,
+        "lon": 37.64759
+      },
+      {
+        "x": 700.0,
+        "z": -100.0,
+        "sessions_per_month": 454,
+        "utilization": 0.1425,
+        "cannibalized_from_own": 199,
+        "net_gain": 255,
+        "lat": 55.7089,
+        "lon": 37.65716
+      },
+      {
+        "x": 900.0,
+        "z": 500.0,
+        "sessions_per_month": 452,
+        "utilization": 0.1418,
+        "cannibalized_from_own": 198,
+        "net_gain": 254,
+        "lat": 55.70348,
+        "lon": 37.66035
+      },
+      {
+        "x": -1900.0,
+        "z": -900.0,
+        "sessions_per_month": 345,
+        "utilization": 0.1083,
+        "cannibalized_from_own": 92,
+        "net_gain": 253,
+        "lat": 55.71614,
+        "lon": 37.61571
+      },
+      {
+        "x": -100.0,
+        "z": -1100.0,
+        "sessions_per_month": 410,
+        "utilization": 0.1286,
+        "cannibalized_from_own": 157,
+        "net_gain": 253,
+        "lat": 55.71795,
+        "lon": 37.64441
+      },
+      {
+        "x": -1300.0,
+        "z": -1100.0,
+        "sessions_per_month": 360,
+        "utilization": 0.113,
+        "cannibalized_from_own": 108,
+        "net_gain": 252,
+        "lat": 55.71795,
+        "lon": 37.62527
+      },
+      {
+        "x": -1500.0,
+        "z": -1100.0,
+        "sessions_per_month": 354,
+        "utilization": 0.1112,
+        "cannibalized_from_own": 103,
+        "net_gain": 251,
+        "lat": 55.71795,
+        "lon": 37.62208
+      },
+      {
+        "x": 900.0,
+        "z": 300.0,
+        "sessions_per_month": 450,
+        "utilization": 0.1413,
+        "cannibalized_from_own": 199,
+        "net_gain": 251,
+        "lat": 55.70529,
+        "lon": 37.66035
+      },
+      {
+        "x": 500.0,
+        "z": -500.0,
+        "sessions_per_month": 437,
+        "utilization": 0.1373,
+        "cannibalized_from_own": 186,
+        "net_gain": 251,
+        "lat": 55.71252,
+        "lon": 37.65397
+      },
+      {
+        "x": 700.0,
+        "z": -300.0,
+        "sessions_per_month": 445,
+        "utilization": 0.1398,
+        "cannibalized_from_own": 195,
+        "net_gain": 250,
+        "lat": 55.71071,
+        "lon": 37.65716
+      },
+      {
+        "x": -1100.0,
+        "z": -1100.0,
+        "sessions_per_month": 364,
+        "utilization": 0.1143,
+        "cannibalized_from_own": 113,
+        "net_gain": 250,
+        "lat": 55.71795,
+        "lon": 37.62846
+      },
+      {
+        "x": 100.0,
+        "z": -900.0,
+        "sessions_per_month": 412,
+        "utilization": 0.1293,
+        "cannibalized_from_own": 163,
+        "net_gain": 249,
+        "lat": 55.71614,
+        "lon": 37.64759
+      },
+      {
+        "x": 300.0,
+        "z": -700.0,
+        "sessions_per_month": 423,
+        "utilization": 0.133,
+        "cannibalized_from_own": 174,
+        "net_gain": 249,
+        "lat": 55.71433,
+        "lon": 37.65078
+      },
+      {
+        "x": 900.0,
+        "z": 100.0,
+        "sessions_per_month": 449,
+        "utilization": 0.141,
+        "cannibalized_from_own": 201,
+        "net_gain": 248,
+        "lat": 55.7071,
+        "lon": 37.66035
+      },
+      {
+        "x": -700.0,
+        "z": -1100.0,
+        "sessions_per_month": 374,
+        "utilization": 0.1175,
+        "cannibalized_from_own": 127,
+        "net_gain": 248,
+        "lat": 55.71795,
+        "lon": 37.63484
+      },
+      {
+        "x": -1700.0,
+        "z": -1100.0,
+        "sessions_per_month": 345,
+        "utilization": 0.1084,
+        "cannibalized_from_own": 98,
+        "net_gain": 247,
+        "lat": 55.71795,
+        "lon": 37.61889
+      },
+      {
+        "x": 900.0,
+        "z": 1700.0,
+        "sessions_per_month": 430,
+        "utilization": 0.1349,
+        "cannibalized_from_own": 184,
+        "net_gain": 246,
+        "lat": 55.69263,
+        "lon": 37.66035
+      },
+      {
+        "x": 1300.0,
+        "z": 1300.0,
+        "sessions_per_month": 451,
+        "utilization": 0.1416,
+        "cannibalized_from_own": 205,
+        "net_gain": 245,
+        "lat": 55.69624,
+        "lon": 37.66673
+      },
+      {
+        "x": 700.0,
+        "z": -500.0,
+        "sessions_per_month": 436,
+        "utilization": 0.1369,
+        "cannibalized_from_own": 192,
+        "net_gain": 244,
+        "lat": 55.71252,
+        "lon": 37.65716
+      },
+      {
+        "x": 900.0,
+        "z": -100.0,
+        "sessions_per_month": 442,
+        "utilization": 0.1388,
+        "cannibalized_from_own": 199,
+        "net_gain": 243,
+        "lat": 55.7089,
+        "lon": 37.66035
+      },
+      {
+        "x": 500.0,
+        "z": -700.0,
+        "sessions_per_month": 420,
+        "utilization": 0.132,
+        "cannibalized_from_own": 179,
+        "net_gain": 241,
+        "lat": 55.71433,
+        "lon": 37.65397
+      },
+      {
+        "x": 300.0,
+        "z": -900.0,
+        "sessions_per_month": 408,
+        "utilization": 0.1281,
+        "cannibalized_from_own": 168,
+        "net_gain": 240,
+        "lat": 55.71614,
+        "lon": 37.65078
+      },
+      {
+        "x": 100.0,
+        "z": -1100.0,
+        "sessions_per_month": 398,
+        "utilization": 0.1249,
+        "cannibalized_from_own": 158,
+        "net_gain": 240,
+        "lat": 55.71795,
+        "lon": 37.64759
+      },
+      {
+        "x": 900.0,
+        "z": -300.0,
+        "sessions_per_month": 434,
+        "utilization": 0.1362,
+        "cannibalized_from_own": 195,
+        "net_gain": 238,
+        "lat": 55.71071,
+        "lon": 37.66035
+      },
+      {
+        "x": -1100.0,
+        "z": -1300.0,
+        "sessions_per_month": 350,
+        "utilization": 0.1099,
+        "cannibalized_from_own": 112,
+        "net_gain": 238,
+        "lat": 55.71976,
+        "lon": 37.62846
+      },
+      {
+        "x": 1300.0,
+        "z": 1100.0,
+        "sessions_per_month": 436,
+        "utilization": 0.137,
+        "cannibalized_from_own": 198,
+        "net_gain": 238,
+        "lat": 55.69805,
+        "lon": 37.66673
+      },
+      {
+        "x": 1100.0,
+        "z": 500.0,
+        "sessions_per_month": 432,
+        "utilization": 0.1357,
+        "cannibalized_from_own": 194,
+        "net_gain": 238,
+        "lat": 55.70348,
+        "lon": 37.66354
+      },
+      {
+        "x": 1300.0,
+        "z": 1500.0,
+        "sessions_per_month": 436,
+        "utilization": 0.1368,
+        "cannibalized_from_own": 198,
+        "net_gain": 238,
+        "lat": 55.69443,
+        "lon": 37.66673
+      },
+      {
+        "x": 1100.0,
+        "z": 100.0,
+        "sessions_per_month": 436,
+        "utilization": 0.137,
+        "cannibalized_from_own": 201,
+        "net_gain": 236,
+        "lat": 55.7071,
+        "lon": 37.66354
+      },
+      {
+        "x": -1700.0,
+        "z": -1300.0,
+        "sessions_per_month": 335,
+        "utilization": 0.1051,
+        "cannibalized_from_own": 99,
+        "net_gain": 236,
+        "lat": 55.71976,
+        "lon": 37.61889
+      },
+      {
+        "x": 1100.0,
+        "z": 300.0,
+        "sessions_per_month": 432,
+        "utilization": 0.1357,
+        "cannibalized_from_own": 196,
+        "net_gain": 236,
+        "lat": 55.70529,
+        "lon": 37.66354
+      },
+      {
+        "x": 1100.0,
+        "z": 1700.0,
+        "sessions_per_month": 424,
+        "utilization": 0.133,
+        "cannibalized_from_own": 187,
+        "net_gain": 236,
+        "lat": 55.69263,
+        "lon": 37.66354
+      },
+      {
+        "x": -700.0,
+        "z": -1300.0,
+        "sessions_per_month": 358,
+        "utilization": 0.1123,
+        "cannibalized_from_own": 123,
+        "net_gain": 235,
+        "lat": 55.71976,
+        "lon": 37.63484
+      },
+      {
+        "x": 900.0,
+        "z": -500.0,
+        "sessions_per_month": 424,
+        "utilization": 0.1331,
+        "cannibalized_from_own": 191,
+        "net_gain": 232,
+        "lat": 55.71252,
+        "lon": 37.66035
+      },
+      {
+        "x": 1100.0,
+        "z": -100.0,
+        "sessions_per_month": 428,
+        "utilization": 0.1345,
+        "cannibalized_from_own": 197,
+        "net_gain": 231,
+        "lat": 55.7089,
+        "lon": 37.66354
+      },
+      {
+        "x": 500.0,
+        "z": -900.0,
+        "sessions_per_month": 403,
+        "utilization": 0.1266,
+        "cannibalized_from_own": 172,
+        "net_gain": 231,
+        "lat": 55.71614,
+        "lon": 37.65397
+      },
+      {
+        "x": 1300.0,
+        "z": 900.0,
+        "sessions_per_month": 423,
+        "utilization": 0.1328,
+        "cannibalized_from_own": 192,
+        "net_gain": 231,
+        "lat": 55.69986,
+        "lon": 37.66673
+      },
+      {
+        "x": -1900.0,
+        "z": -1300.0,
+        "sessions_per_month": 323,
+        "utilization": 0.1015,
+        "cannibalized_from_own": 94,
+        "net_gain": 230,
+        "lat": 55.71976,
+        "lon": 37.61571
+      },
+      {
+        "x": -1300.0,
+        "z": -1500.0,
+        "sessions_per_month": 337,
+        "utilization": 0.1057,
+        "cannibalized_from_own": 107,
+        "net_gain": 229,
+        "lat": 55.72157,
+        "lon": 37.62527
+      },
+      {
+        "x": -1500.0,
+        "z": -1500.0,
+        "sessions_per_month": 333,
+        "utilization": 0.1047,
+        "cannibalized_from_own": 104,
+        "net_gain": 229,
+        "lat": 55.72157,
+        "lon": 37.62208
+      },
+      {
+        "x": 300.0,
+        "z": -1100.0,
+        "sessions_per_month": 390,
+        "utilization": 0.1224,
+        "cannibalized_from_own": 161,
+        "net_gain": 229,
+        "lat": 55.71795,
+        "lon": 37.65078
+      },
+      {
+        "x": 1100.0,
+        "z": -300.0,
+        "sessions_per_month": 422,
+        "utilization": 0.1324,
+        "cannibalized_from_own": 194,
+        "net_gain": 228,
+        "lat": 55.71071,
+        "lon": 37.66354
+      },
+      {
+        "x": -1100.0,
+        "z": -1500.0,
+        "sessions_per_month": 338,
+        "utilization": 0.1061,
+        "cannibalized_from_own": 111,
+        "net_gain": 227,
+        "lat": 55.72157,
+        "lon": 37.62846
+      },
+      {
+        "x": 1300.0,
+        "z": 700.0,
+        "sessions_per_month": 414,
+        "utilization": 0.1301,
+        "cannibalized_from_own": 188,
+        "net_gain": 226,
+        "lat": 55.70167,
+        "lon": 37.66673
+      },
+      {
+        "x": 100.0,
+        "z": -1300.0,
+        "sessions_per_month": 373,
+        "utilization": 0.1172,
+        "cannibalized_from_own": 149,
+        "net_gain": 225,
+        "lat": 55.71976,
+        "lon": 37.64759
+      },
+      {
+        "x": 900.0,
+        "z": -700.0,
+        "sessions_per_month": 410,
+        "utilization": 0.1289,
+        "cannibalized_from_own": 186,
+        "net_gain": 225,
+        "lat": 55.71433,
+        "lon": 37.66035
+      },
+      {
+        "x": -900.0,
+        "z": -1500.0,
+        "sessions_per_month": 338,
+        "utilization": 0.1063,
+        "cannibalized_from_own": 114,
+        "net_gain": 224,
+        "lat": 55.72157,
+        "lon": 37.63165
+      },
+      {
+        "x": 1300.0,
+        "z": 500.0,
+        "sessions_per_month": 411,
+        "utilization": 0.129,
+        "cannibalized_from_own": 188,
+        "net_gain": 223,
+        "lat": 55.70348,
+        "lon": 37.66673
+      },
+      {
+        "x": -1900.0,
+        "z": -1500.0,
+        "sessions_per_month": 318,
+        "utilization": 0.0998,
+        "cannibalized_from_own": 95,
+        "net_gain": 223,
+        "lat": 55.72157,
+        "lon": 37.61571
+      },
+      {
+        "x": 1100.0,
+        "z": -500.0,
+        "sessions_per_month": 414,
+        "utilization": 0.13,
+        "cannibalized_from_own": 191,
+        "net_gain": 223,
+        "lat": 55.71252,
+        "lon": 37.66354
+      },
+      {
+        "x": -1500.0,
+        "z": -1700.0,
+        "sessions_per_month": 326,
+        "utilization": 0.1024,
+        "cannibalized_from_own": 105,
+        "net_gain": 222,
+        "lat": 55.72337,
+        "lon": 37.62208
+      },
+      {
+        "x": -700.0,
+        "z": -1500.0,
+        "sessions_per_month": 340,
+        "utilization": 0.1067,
+        "cannibalized_from_own": 118,
+        "net_gain": 222,
+        "lat": 55.72157,
+        "lon": 37.63484
+      },
+      {
+        "x": -1300.0,
+        "z": -1700.0,
+        "sessions_per_month": 328,
+        "utilization": 0.1031,
+        "cannibalized_from_own": 107,
+        "net_gain": 221,
+        "lat": 55.72337,
+        "lon": 37.62527
+      },
+      {
+        "x": 1300.0,
+        "z": 300.0,
+        "sessions_per_month": 411,
+        "utilization": 0.1291,
+        "cannibalized_from_own": 190,
+        "net_gain": 221,
+        "lat": 55.70529,
+        "lon": 37.66673
+      },
+      {
+        "x": 1300.0,
+        "z": 100.0,
+        "sessions_per_month": 413,
+        "utilization": 0.1297,
+        "cannibalized_from_own": 192,
+        "net_gain": 221,
+        "lat": 55.7071,
+        "lon": 37.66673
+      },
+      {
+        "x": 1300.0,
+        "z": 1700.0,
+        "sessions_per_month": 403,
+        "utilization": 0.1265,
+        "cannibalized_from_own": 182,
+        "net_gain": 221,
+        "lat": 55.69263,
+        "lon": 37.66673
+      },
+      {
+        "x": 500.0,
+        "z": -1100.0,
+        "sessions_per_month": 385,
+        "utilization": 0.121,
+        "cannibalized_from_own": 164,
+        "net_gain": 221,
+        "lat": 55.71795,
+        "lon": 37.65397
+      },
+      {
+        "x": 1300.0,
+        "z": -100.0,
+        "sessions_per_month": 413,
+        "utilization": 0.1295,
+        "cannibalized_from_own": 192,
+        "net_gain": 220,
+        "lat": 55.7089,
+        "lon": 37.66673
+      },
+      {
+        "x": -1700.0,
+        "z": -1700.0,
+        "sessions_per_month": 321,
+        "utilization": 0.1007,
+        "cannibalized_from_own": 101,
+        "net_gain": 220,
+        "lat": 55.72337,
+        "lon": 37.61889
+      },
+      {
+        "x": 1300.0,
+        "z": -300.0,
+        "sessions_per_month": 411,
+        "utilization": 0.1289,
+        "cannibalized_from_own": 192,
+        "net_gain": 219,
+        "lat": 55.71071,
+        "lon": 37.66673
+      },
+      {
+        "x": -1100.0,
+        "z": -1700.0,
+        "sessions_per_month": 327,
+        "utilization": 0.1028,
+        "cannibalized_from_own": 109,
+        "net_gain": 218,
+        "lat": 55.72337,
+        "lon": 37.62846
+      },
+      {
+        "x": 1100.0,
+        "z": -700.0,
+        "sessions_per_month": 405,
+        "utilization": 0.1271,
+        "cannibalized_from_own": 187,
+        "net_gain": 218,
+        "lat": 55.71433,
+        "lon": 37.66354
+      },
+      {
+        "x": 900.0,
+        "z": -900.0,
+        "sessions_per_month": 395,
+        "utilization": 0.1242,
+        "cannibalized_from_own": 179,
+        "net_gain": 217,
+        "lat": 55.71614,
+        "lon": 37.66035
+      },
+      {
+        "x": 1300.0,
+        "z": -500.0,
+        "sessions_per_month": 407,
+        "utilization": 0.1278,
+        "cannibalized_from_own": 191,
+        "net_gain": 216,
+        "lat": 55.71252,
+        "lon": 37.66673
+      },
+      {
+        "x": -1900.0,
+        "z": -1700.0,
+        "sessions_per_month": 313,
+        "utilization": 0.0981,
+        "cannibalized_from_own": 97,
+        "net_gain": 216,
+        "lat": 55.72337,
+        "lon": 37.61571
+      },
+      {
+        "x": 300.0,
+        "z": -1300.0,
+        "sessions_per_month": 367,
+        "utilization": 0.1154,
+        "cannibalized_from_own": 152,
+        "net_gain": 216,
+        "lat": 55.71976,
+        "lon": 37.65078
+      },
+      {
+        "x": -300.0,
+        "z": -1500.0,
+        "sessions_per_month": 345,
+        "utilization": 0.1084,
+        "cannibalized_from_own": 129,
+        "net_gain": 216,
+        "lat": 55.72157,
+        "lon": 37.64122
+      },
+      {
+        "x": -900.0,
+        "z": -1700.0,
+        "sessions_per_month": 325,
+        "utilization": 0.102,
+        "cannibalized_from_own": 111,
+        "net_gain": 213,
+        "lat": 55.72337,
+        "lon": 37.63165
+      },
+      {
+        "x": -100.0,
+        "z": -1500.0,
+        "sessions_per_month": 347,
+        "utilization": 0.1089,
+        "cannibalized_from_own": 134,
+        "net_gain": 213,
+        "lat": 55.72157,
+        "lon": 37.64441
+      },
+      {
+        "x": 700.0,
+        "z": -1100.0,
+        "sessions_per_month": 381,
+        "utilization": 0.1197,
+        "cannibalized_from_own": 168,
+        "net_gain": 213,
+        "lat": 55.71795,
+        "lon": 37.65716
+      },
+      {
+        "x": 1300.0,
+        "z": -700.0,
+        "sessions_per_month": 401,
+        "utilization": 0.1259,
+        "cannibalized_from_own": 189,
+        "net_gain": 212,
+        "lat": 55.71433,
+        "lon": 37.66673
+      },
+      {
+        "x": 1100.0,
+        "z": -900.0,
+        "sessions_per_month": 394,
+        "utilization": 0.1236,
+        "cannibalized_from_own": 182,
+        "net_gain": 211,
+        "lat": 55.71614,
+        "lon": 37.66354
+      },
+      {
+        "x": 1500.0,
+        "z": -300.0,
+        "sessions_per_month": 401,
+        "utilization": 0.1259,
+        "cannibalized_from_own": 190,
+        "net_gain": 211,
+        "lat": 55.71071,
+        "lon": 37.66992
+      },
+      {
+        "x": 1500.0,
+        "z": -100.0,
+        "sessions_per_month": 397,
+        "utilization": 0.1246,
+        "cannibalized_from_own": 187,
+        "net_gain": 210,
+        "lat": 55.7089,
+        "lon": 37.66992
+      },
+      {
+        "x": -700.0,
+        "z": -1700.0,
+        "sessions_per_month": 322,
+        "utilization": 0.1012,
+        "cannibalized_from_own": 114,
+        "net_gain": 209,
+        "lat": 55.72337,
+        "lon": 37.63484
+      },
+      {
+        "x": 900.0,
+        "z": -1100.0,
+        "sessions_per_month": 380,
+        "utilization": 0.1192,
+        "cannibalized_from_own": 172,
+        "net_gain": 208,
+        "lat": 55.71795,
+        "lon": 37.66035
+      },
+      {
+        "x": 1500.0,
+        "z": -700.0,
+        "sessions_per_month": 398,
+        "utilization": 0.1251,
+        "cannibalized_from_own": 190,
+        "net_gain": 208,
+        "lat": 55.71433,
+        "lon": 37.66992
+      },
+      {
+        "x": 1500.0,
+        "z": 100.0,
+        "sessions_per_month": 392,
+        "utilization": 0.1229,
+        "cannibalized_from_own": 184,
+        "net_gain": 208,
+        "lat": 55.7071,
+        "lon": 37.66992
+      },
+      {
+        "x": 500.0,
+        "z": -1300.0,
+        "sessions_per_month": 363,
+        "utilization": 0.1141,
+        "cannibalized_from_own": 155,
+        "net_gain": 208,
+        "lat": 55.71976,
+        "lon": 37.65397
+      },
+      {
+        "x": 100.0,
+        "z": -1500.0,
+        "sessions_per_month": 345,
+        "utilization": 0.1084,
+        "cannibalized_from_own": 138,
+        "net_gain": 207,
+        "lat": 55.72157,
+        "lon": 37.64759
+      },
+      {
+        "x": 1500.0,
+        "z": 300.0,
+        "sessions_per_month": 387,
+        "utilization": 0.1216,
+        "cannibalized_from_own": 181,
+        "net_gain": 207,
+        "lat": 55.70529,
+        "lon": 37.66992
+      },
+      {
+        "x": 1500.0,
+        "z": 500.0,
+        "sessions_per_month": 386,
+        "utilization": 0.1212,
+        "cannibalized_from_own": 179,
+        "net_gain": 207,
+        "lat": 55.70348,
+        "lon": 37.66992
+      },
+      {
+        "x": 1700.0,
+        "z": -500.0,
+        "sessions_per_month": 397,
+        "utilization": 0.1248,
+        "cannibalized_from_own": 191,
+        "net_gain": 207,
+        "lat": 55.71252,
+        "lon": 37.67311
+      },
+      {
+        "x": 1700.0,
+        "z": -300.0,
+        "sessions_per_month": 393,
+        "utilization": 0.1233,
+        "cannibalized_from_own": 187,
+        "net_gain": 205,
+        "lat": 55.71071,
+        "lon": 37.67311
+      },
+      {
+        "x": 1100.0,
+        "z": -1100.0,
+        "sessions_per_month": 381,
+        "utilization": 0.1195,
+        "cannibalized_from_own": 177,
+        "net_gain": 204,
+        "lat": 55.71795,
+        "lon": 37.66354
+      },
+      {
+        "x": 1700.0,
+        "z": -700.0,
+        "sessions_per_month": 394,
+        "utilization": 0.1237,
+        "cannibalized_from_own": 190,
+        "net_gain": 204,
+        "lat": 55.71433,
+        "lon": 37.67311
+      },
+      {
+        "x": -500.0,
+        "z": -1700.0,
+        "sessions_per_month": 321,
+        "utilization": 0.1008,
+        "cannibalized_from_own": 117,
+        "net_gain": 204,
+        "lat": 55.72337,
+        "lon": 37.63803
+      },
+      {
+        "x": 1300.0,
+        "z": -1100.0,
+        "sessions_per_month": 384,
+        "utilization": 0.1206,
+        "cannibalized_from_own": 182,
+        "net_gain": 202,
+        "lat": 55.71795,
+        "lon": 37.66673
+      },
+      {
+        "x": 1900.0,
+        "z": -500.0,
+        "sessions_per_month": 391,
+        "utilization": 0.1226,
+        "cannibalized_from_own": 189,
+        "net_gain": 202,
+        "lat": 55.71252,
+        "lon": 37.67629
+      },
+      {
+        "x": 700.0,
+        "z": -1300.0,
+        "sessions_per_month": 362,
+        "utilization": 0.1136,
+        "cannibalized_from_own": 160,
+        "net_gain": 202,
+        "lat": 55.71976,
+        "lon": 37.65716
+      },
+      {
+        "x": 1700.0,
+        "z": -100.0,
+        "sessions_per_month": 380,
+        "utilization": 0.1194,
+        "cannibalized_from_own": 181,
+        "net_gain": 200,
+        "lat": 55.7089,
+        "lon": 37.67311
+      },
+      {
+        "x": -300.0,
+        "z": -1700.0,
+        "sessions_per_month": 320,
+        "utilization": 0.1006,
+        "cannibalized_from_own": 120,
+        "net_gain": 200,
+        "lat": 55.72337,
+        "lon": 37.64122
+      },
+      {
+        "x": 1700.0,
+        "z": -1300.0,
+        "sessions_per_month": 388,
+        "utilization": 0.1219,
+        "cannibalized_from_own": 191,
+        "net_gain": 197,
+        "lat": 55.71976,
+        "lon": 37.67311
+      },
+      {
+        "x": 1900.0,
+        "z": -1300.0,
+        "sessions_per_month": 392,
+        "utilization": 0.1231,
+        "cannibalized_from_own": 195,
+        "net_gain": 197,
+        "lat": 55.71976,
+        "lon": 37.67629
+      },
+      {
+        "x": 1900.0,
+        "z": -700.0,
+        "sessions_per_month": 380,
+        "utilization": 0.1194,
+        "cannibalized_from_own": 185,
+        "net_gain": 196,
+        "lat": 55.71433,
+        "lon": 37.67629
+      },
+      {
+        "x": 1500.0,
+        "z": -1300.0,
+        "sessions_per_month": 379,
+        "utilization": 0.1191,
+        "cannibalized_from_own": 184,
+        "net_gain": 196,
+        "lat": 55.71976,
+        "lon": 37.66992
+      },
+      {
+        "x": -100.0,
+        "z": -1700.0,
+        "sessions_per_month": 320,
+        "utilization": 0.1004,
+        "cannibalized_from_own": 124,
+        "net_gain": 196,
+        "lat": 55.72337,
+        "lon": 37.64441
+      },
+      {
+        "x": 1100.0,
+        "z": -1300.0,
+        "sessions_per_month": 365,
+        "utilization": 0.1145,
+        "cannibalized_from_own": 170,
+        "net_gain": 195,
+        "lat": 55.71976,
+        "lon": 37.66354
+      },
+      {
+        "x": 1700.0,
+        "z": 100.0,
+        "sessions_per_month": 369,
+        "utilization": 0.116,
+        "cannibalized_from_own": 175,
+        "net_gain": 195,
+        "lat": 55.7071,
+        "lon": 37.67311
+      },
+      {
+        "x": 500.0,
+        "z": -1500.0,
+        "sessions_per_month": 339,
+        "utilization": 0.1064,
+        "cannibalized_from_own": 145,
+        "net_gain": 194,
+        "lat": 55.72157,
+        "lon": 37.65397
+      },
+      {
+        "x": 1900.0,
+        "z": -1100.0,
+        "sessions_per_month": 382,
+        "utilization": 0.1198,
+        "cannibalized_from_own": 188,
+        "net_gain": 193,
+        "lat": 55.71795,
+        "lon": 37.67629
+      },
+      {
+        "x": 1900.0,
+        "z": -900.0,
+        "sessions_per_month": 377,
+        "utilization": 0.1185,
+        "cannibalized_from_own": 185,
+        "net_gain": 193,
+        "lat": 55.71614,
+        "lon": 37.67629
+      },
+      {
+        "x": 1700.0,
+        "z": 700.0,
+        "sessions_per_month": 361,
+        "utilization": 0.1133,
+        "cannibalized_from_own": 168,
+        "net_gain": 193,
+        "lat": 55.70167,
+        "lon": 37.67311
+      },
+      {
+        "x": 1700.0,
+        "z": 500.0,
+        "sessions_per_month": 359,
+        "utilization": 0.1128,
+        "cannibalized_from_own": 168,
+        "net_gain": 191,
+        "lat": 55.70348,
+        "lon": 37.67311
+      },
+      {
+        "x": 1700.0,
+        "z": -1500.0,
+        "sessions_per_month": 373,
+        "utilization": 0.1171,
+        "cannibalized_from_own": 183,
+        "net_gain": 190,
+        "lat": 55.72157,
+        "lon": 37.67311
+      },
+      {
+        "x": 100.0,
+        "z": -1700.0,
+        "sessions_per_month": 318,
+        "utilization": 0.0997,
+        "cannibalized_from_own": 127,
+        "net_gain": 190,
+        "lat": 55.72337,
+        "lon": 37.64759
+      },
+      {
+        "x": 700.0,
+        "z": -1500.0,
+        "sessions_per_month": 338,
+        "utilization": 0.1062,
+        "cannibalized_from_own": 149,
+        "net_gain": 189,
+        "lat": 55.72157,
+        "lon": 37.65716
+      },
+      {
+        "x": 1900.0,
+        "z": -100.0,
+        "sessions_per_month": 358,
+        "utilization": 0.1125,
+        "cannibalized_from_own": 171,
+        "net_gain": 187,
+        "lat": 55.7089,
+        "lon": 37.67629
+      },
+      {
+        "x": 900.0,
+        "z": -1500.0,
+        "sessions_per_month": 340,
+        "utilization": 0.1068,
+        "cannibalized_from_own": 154,
+        "net_gain": 186,
+        "lat": 55.72157,
+        "lon": 37.66035
+      },
+      {
+        "x": 1900.0,
+        "z": -1500.0,
+        "sessions_per_month": 370,
+        "utilization": 0.1161,
+        "cannibalized_from_own": 184,
+        "net_gain": 186,
+        "lat": 55.72157,
+        "lon": 37.67629
+      },
+      {
+        "x": 1100.0,
+        "z": -1500.0,
+        "sessions_per_month": 345,
+        "utilization": 0.1084,
+        "cannibalized_from_own": 161,
+        "net_gain": 185,
+        "lat": 55.72157,
+        "lon": 37.66354
+      },
+      {
+        "x": 300.0,
+        "z": -1700.0,
+        "sessions_per_month": 315,
+        "utilization": 0.0988,
+        "cannibalized_from_own": 130,
+        "net_gain": 184,
+        "lat": 55.72337,
+        "lon": 37.65078
+      },
+      {
+        "x": 1900.0,
+        "z": 900.0,
+        "sessions_per_month": 334,
+        "utilization": 0.1049,
+        "cannibalized_from_own": 156,
+        "net_gain": 178,
+        "lat": 55.69986,
+        "lon": 37.67629
+      },
+      {
+        "x": 1700.0,
+        "z": -1700.0,
+        "sessions_per_month": 348,
+        "utilization": 0.1093,
+        "cannibalized_from_own": 171,
+        "net_gain": 177,
+        "lat": 55.72337,
+        "lon": 37.67311
+      },
+      {
+        "x": 1900.0,
+        "z": 300.0,
+        "sessions_per_month": 334,
+        "utilization": 0.1049,
+        "cannibalized_from_own": 158,
+        "net_gain": 176,
+        "lat": 55.70529,
+        "lon": 37.67629
+      },
+      {
+        "x": 1900.0,
+        "z": 700.0,
+        "sessions_per_month": 330,
+        "utilization": 0.1037,
+        "cannibalized_from_own": 155,
+        "net_gain": 175,
+        "lat": 55.70167,
+        "lon": 37.67629
+      },
+      {
+        "x": 700.0,
+        "z": -1700.0,
+        "sessions_per_month": 313,
+        "utilization": 0.0982,
+        "cannibalized_from_own": 138,
+        "net_gain": 175,
+        "lat": 55.72337,
+        "lon": 37.65716
+      },
+      {
+        "x": 900.0,
+        "z": -1700.0,
+        "sessions_per_month": 316,
+        "utilization": 0.0991,
+        "cannibalized_from_own": 143,
+        "net_gain": 172,
+        "lat": 55.72337,
+        "lon": 37.66035
+      },
+      {
+        "x": 1100.0,
+        "z": -1700.0,
+        "sessions_per_month": 321,
+        "utilization": 0.1009,
+        "cannibalized_from_own": 149,
+        "net_gain": 172,
+        "lat": 55.72337,
+        "lon": 37.66354
+      }
+    ]
+  },
+  "growth_index_per_station": {
+    "note": "рост парка EV (прогноз РСЗС) делённый на рост сети — спрос НА СТАНЦИЮ, а не суммарный",
+    "scenarios_by_fleet": {
+      "low": {
+        "2027": 1.0,
+        "2030": 2.036,
+        "2035": 3.353
+      },
+      "base": {
+        "2027": 1.0,
+        "2030": 2.159,
+        "2035": 4.064
+      },
+      "high": {
+        "2027": 1.0,
+        "2030": 2.262,
+        "2035": 4.657
+      }
+    },
+    "sensitivity_to_network_growth": {
+      "сеть растёт медленно": {
+        "2027": 1.0,
+        "2030": 2.424,
+        "2035": 4.848
+      },
+      "базовый рост сети": {
+        "2027": 1.0,
+        "2030": 2.159,
+        "2035": 4.064
+      },
+      "сеть растёт быстро": {
+        "2027": 1.0,
+        "2030": 1.856,
+        "2035": 3.182
+      }
+    },
+    "key_finding": "прирост парка НЕ переходит в прирост спроса на станцию один к одному: при быстром строительстве сети тот же парк делится на большее число станций"
+  }
+}

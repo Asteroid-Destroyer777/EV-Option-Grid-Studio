@@ -1,0 +1,21 @@
+:root{
+  --ink:#f5f6f8; --g900:#fff; --g800:#f5f6f8; --g700:#e9edf3; --g600:#d5dce6; --g500:#b4bfce;
+  --paper:#182235; --paper-2:#516075; --paper-3:#64748b; --paper-4:#7b889b;
+  --line:#e6eaf0; --line-2:#d4dce7;
+  --violet:#006adc; --violet-2:#0059bd; --violet-soft:#edf5ff;
+  --cyan:#007c95; --ok:#16794f; --warn:#aa6208; --bad:#c73545;
+  --f-display:-apple-system,BlinkMacSystemFont,'Onest','Segoe UI',sans-serif;
+  --f-text:-apple-system,BlinkMacSystemFont,'Onest','Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --rail-w:220px; --panel-w:380px; --top-h:96px;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--paper);font-family:var(--f-text);font-size:13px;line-height:1.45;overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid #76b7ff;outline-offset:3px}
+#app{position:fixed;inset:0;overflow:clip}
+#stage{position:absolute;inset:0;z-index:0}
+#gl{display:block;width:100%;height:100%;outline:none;touch-action:none}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+::selection{background:var(--violet);color:#fff}
