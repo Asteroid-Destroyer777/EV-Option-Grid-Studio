@@ -24,6 +24,12 @@ export class MeshBuilder {
     F([0, 0, -1], [[hx, -hy, -hz], [-hx, -hy, -hz], [-hx, hy, -hz], [hx, hy, -hz]]);
     return this;
   }
+  wheel(cx,cy,cz,r,width){
+    const segments=12;
+    const triangle=(points,normals,color,emit=2)=>{const c=new THREE.Color(color);for(let j=0;j<3;j++){this.P.push(...points[j]);this.N.push(...normals[j]);this.C.push(c.r,c.g,c.b);this.E.push(emit);}};
+    for(let i=0;i<segments;i++){const a=i*Math.PI*2/segments,b=(i+1)*Math.PI*2/segments,xa=Math.cos(a),ya=Math.sin(a),xb=Math.cos(b),yb=Math.sin(b),z0=cz-width/2,z1=cz+width/2,pa=[cx+xa*r,cy+ya*r,z0],pb=[cx+xb*r,cy+yb*r,z0],pc=[cx+xb*r,cy+yb*r,z1],pd=[cx+xa*r,cy+ya*r,z1];triangle([pa,pb,pc],[[xa,ya,0],[xb,yb,0],[xb,yb,0]],TYRE);triangle([pa,pc,pd],[[xa,ya,0],[xb,yb,0],[xa,ya,0]],TYRE);for(const z of [z0,z1]){const n=[0,0,z===z0?-1:1],faceZ=z+(z===z0?-.002:.002),ra=[cx+xa*r*.6,cy+ya*r*.6,faceZ],rb=[cx+xb*r*.6,cy+yb*r*.6,faceZ];triangle(z===z0?[[cx,cy,faceZ],rb,ra]:[[cx,cy,faceZ],ra,rb],[n,n,n],'#9199a2');const disc=[[cx,cy,z],[cx+xa*r,cy+ya*r,z],[cx+xb*r,cy+yb*r,z]];triangle(z===z0?[disc[0],disc[2],disc[1]]:disc,[n,n,n],TYRE);}}
+    return this;
+  }
   geometry() {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.P, 3));
@@ -35,7 +41,7 @@ export class MeshBuilder {
 }
 const WHITE = '#ffffff', GLASS = '#0b0e15', TYRE = '#07080b', HEAD = '#fff3d6', TAIL = '#ff2d3d';
 
-function wheels(b, xs, z, r = 0.34, w = 0.24) { for (const x of xs) for (const s of [-1, 1]) b.box(x, r, s * z, r * 2, r * 2, w, TYRE, 2); }
+function wheels(b, xs, z, r = 0.34, w = 0.24) { for (const x of xs) for (const s of [-1, 1]) b.wheel(x,r,s*z,r,w); }
 
 export function carGeometry() {
   const b = new MeshBuilder();
@@ -44,6 +50,7 @@ export function carGeometry() {
   b.box(-0.3, 1.36, 0, 2.05, 0.06, 1.5, WHITE, 0);
   b.box(1.4, 0.98, 0, 1.2, 0.08, 1.6, WHITE, 0);
   wheels(b, [-1.35, 1.35], 0.85);
+  for(const s of [-1,1]){b.box(-.3,1.13,s*.813,.055,.46,.035,WHITE);b.box(.2,1.0,s*.9,.3,.04,.04,'#b8c0c8',2);b.box(.75,1.15,s*.96,.3,.12,.16,WHITE);}
   for (const s of [-1, 1]) { b.box(2.16, 0.72, s * 0.62, 0.06, 0.13, 0.42, HEAD, 1); b.box(-2.16, 0.72, s * 0.62, 0.06, 0.13, 0.42, TAIL, 1); }
   return b.geometry();
 }

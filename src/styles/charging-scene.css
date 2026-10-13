@@ -1,0 +1,53 @@
+/* Photograph layers and SVG motion, with no WebGL in the landing hero. */
+.hero-track{height:210svh;min-height:1250px}
+.hero-photo{background:#1a2532;overflow:hidden}
+.hero-photo .city-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 100%;filter:saturate(.55) brightness(.72);transform:scale(1.02)}
+.city-shade{position:absolute;inset:0;background:linear-gradient(90deg,#142131a8,transparent 65%),linear-gradient(180deg,#17243522 15%,#17243500 45%,#182533f2 82%,#182533 100%)}
+.hero-title{position:relative;z-index:2;max-width:100%;margin-top:3vh;pointer-events:none}
+.hero-small{font-size:clamp(20px,3vw,44px);letter-spacing:-.045em}
+.hero-small i,.hero-grid em{display:none}
+.hero-grid{font-size:clamp(75px,11.5vw,168px);line-height:.88}
+.hero-bottom{z-index:2;bottom:60px}
+.hero-caption{bottom:22px}
+.hero-overline{font-size:10px;text-transform:none}
+.motion-stage{position:absolute;inset:27% 2% 7%;transform-origin:center}
+.motion-stage svg{width:100%;height:100%;overflow:visible}
+.tesla-layer,.station-layer{transform-box:fill-box;transform-origin:center}.tesla-layer{filter:drop-shadow(0 12px 7px #0a142640)}
+.charge-status{position:absolute;top:7%;right:4%;padding:18px 23px;width:255px;border:1px solid #a9b9cd50;border-radius:10px;background:#162638cc;backdrop-filter:blur(12px);font-size:12px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.charge-status small{color:#bac9da;font-size:9px}
+.charge-track{width:100%;height:3px;background:#53657e}
+.charge-track i{display:block;width:8%;height:100%;background:#adbeff}
+.motion-guides{position:absolute;inset:35% 0 0;background-image:linear-gradient(#ffffff03 1px,transparent 1px),linear-gradient(90deg,#ffffff03 1px,transparent 1px);background-size:90px 90px;mask-image:linear-gradient(180deg,transparent,#000)}
+.energy-plane{transform-origin:center;transition:opacity .2s}
+.current-paths{opacity:0;animation:motion-current 2.6s linear infinite;animation-play-state:paused}
+.charging-active .current-paths{opacity:1;animation-play-state:running}
+.charge-port,.charge-plug{opacity:0}
+@keyframes motion-current{to{stroke-dashoffset:-99}}
+.mode-district{background:#e5e8ed!important;color:#17212d!important}
+.district-art{inset:10% -3% 7% 42%!important;border-radius:10px;overflow:hidden;background:#202b38;transform:rotate(-9deg);box-shadow:0 20px 50px #0e172326}
+.district-art>img{width:100%;height:100%;object-fit:cover;opacity:.9}
+.map-contour{position:absolute;inset:0;width:100%;height:100%}
+.map-contour path{fill:#6579ff20;stroke:#9cabff;stroke-width:3}
+.map-contour circle{fill:#8f9fff;stroke:#fff;stroke-width:2}
+.map-fragment-label{position:absolute;bottom:20px;left:20px;font:11px 'IBM Plex Mono';color:white}
+.mode-district .mode-copy,.mode-district .mode-meta{position:relative;z-index:2}
+.eyebrow,.section-index,.mode-meta,.mode-heading,.hero-caption,.reading-label,.map-coordinate,.story-tag,.wordmark small{text-transform:none!important;letter-spacing:0!important}
+#connector-cursor{position:fixed;left:0;top:0;z-index:100;pointer-events:none;opacity:0;transition:opacity .25s;display:flex;align-items:center;gap:10px}
+#connector-cursor.on{opacity:1}
+#connector-cursor svg{width:26px;height:38px;stroke:#a4b2ff;fill:#1d2c48;stroke-width:2}
+#connector-cursor span{font:10px 'IBM Plex Mono';color:#bac6f9;padding:7px 10px;border:1px solid #6678a9;background:#1d293bcc;border-radius:6px}
+@media(min-width:1400px){.motion-stage{inset:23% 5% 3%}}
+@media(max-width:700px){
+ .hero-track{height:180svh;min-height:1050px}.hero-sticky{min-height:640px}
+ .hero-photo{inset:80px 2vw 12px}.hero-photo .city-backdrop{object-position:66% bottom;filter:saturate(.55) brightness(.75)}
+ .city-shade{background:linear-gradient(180deg,#14213160,transparent 40%,#182533f2 73%,#182533)}
+ .hero-title{margin-top:5vh}.hero-grid{font-size:25vw;margin-top:6px}.hero-small{font-size:7vw}
+ .motion-stage{inset:30% 0 25%}.motion-stage text{font-size:18px}
+ .charge-status{top:auto;bottom:28%;right:6%;width:200px;padding:12px 14px;font-size:11px}.charge-status small{font-size:8px}
+ .hero-bottom{bottom:65px}.hero-bottom p{font-size:17px;line-height:1.4}.hero-bottom .pill{min-height:45px}
+ .hero-overline{font-size:8px}.hero-caption{font-size:7px}
+ .district-art{inset:80px 5% 300px 5%!important}.mode-district .mode-copy{margin-top:270px}
+}
+@media(prefers-reduced-motion:reduce){.hero-track{height:100svh;min-height:650px}.current-paths{animation:none}#connector-cursor{display:none}}
+@media(min-width:701px) and (max-width:1000px) and (min-height:900px){.hero-grid{font-size:18vw}.hero-small{font-size:4.5vw}.charge-status{width:225px}}
+.station-light{filter:drop-shadow(0 0 4px #80d9d45c)}.charging-active .charge-port{fill:#93ead9;filter:drop-shadow(0 0 5px #80eac7)}.charging-active .charging-wire-signal{filter:drop-shadow(0 0 3px #85b8ea80)}.station-brand{pointer-events:none}.tesla-layer{will-change:transform}.hero-track{overflow:clip}

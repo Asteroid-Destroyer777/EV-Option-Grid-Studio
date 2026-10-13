@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Арбат",
+    "bounds": [
+      55.744,
+      37.584,
+      55.754,
+      37.604
+    ],
+    "provider": "OpenStreetMap / BBBike · Москва",
+    "osmTimestamp": "2026-10-10",
+    "buildings": 813,
+    "stations": 2,
+    "candidates": 39,
+    "topCount": 5,
+    "allInside": true,
+    "modelMatches": true,
+    "elapsedMs": 641
+  },
+  {
+    "name": "Марьина Роща",
+    "bounds": [
+      55.793,
+      37.604,
+      55.803,
+      37.624
+    ],
+    "provider": "OpenStreetMap / BBBike · Москва",
+    "osmTimestamp": "2026-10-10",
+    "buildings": 352,
+    "stations": 1,
+    "candidates": 32,
+    "topCount": 5,
+    "allInside": true,
+    "modelMatches": true,
+    "elapsedMs": 198
+  },
+  {
+    "name": "Крылатское",
+    "bounds": [
+      55.75,
+      37.418,
+      55.76,
+      37.438
+    ],
+    "provider": "OpenStreetMap / BBBike · Москва",
+    "osmTimestamp": "2026-10-10",
+    "buildings": 70,
+    "stations": 0,
+    "candidates": 49,
+    "topCount": 5,
+    "allInside": true,
+    "modelMatches": true,
+    "elapsedMs": 118
+  },
+  {
+    "name": "Люблино",
+    "bounds": [
+      55.668,
+      37.752,
+      55.678,
+      37.772
+    ],
+    "provider": "OpenStreetMap / BBBike · Москва",
+    "osmTimestamp": "2026-10-10",
+    "buildings": 237,
+    "stations": 1,
+    "candidates": 45,
+    "topCount": 5,
+    "allInside": true,
+    "modelMatches": true,
+    "elapsedMs": 186
+  }
+]

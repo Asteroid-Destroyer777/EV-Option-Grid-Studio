@@ -42,3 +42,5 @@
 .legend-3d{max-height:calc(100vh - var(--top-h) - 230px);overflow:auto}
 .kv b{overflow-wrap:anywhere;font-size:17px}
 @media(min-width:851px) and (max-width:1180px){#dock{max-width:calc(100vw - var(--rail-w) - var(--panel-w) - 64px);left:calc(var(--rail-w) + (100vw - var(--rail-w) - var(--panel-w) - 40px)/2)}}
+
+.landmark-focus{width:calc(100% - 24px);margin:8px 12px 18px;padding:12px;font:12px/1.5 Onest;background:#223043;color:#d8e4f1;border:1px solid #667589;border-radius:7px;cursor:pointer}.lbl.dream-landmark{text-transform:none;letter-spacing:0;padding:10px 14px;background:#1c2a3beb;border:1px solid #899aae;border-radius:7px;font:14px/1.4 Onest;color:#ebf1f7}.lbl.dream-landmark small{display:block;font:10px/1.4 Onest;color:#b1c0d1;text-transform:none;margin-top:3px}

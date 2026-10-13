@@ -1,0 +1,12 @@
+{
+  "changedFiles": [
+    "district.html",
+    "src/charging-motion.js",
+    "src/district/calculation-motion.css"
+  ],
+  "allFormFieldsPreserved": 32,
+  "unchangedSourceFiles": 461,
+  "businessModulesUnchanged": true,
+  "selectedScene": "K1",
+  "previewAdded": "previews/beaver-motion-options.html"
+}

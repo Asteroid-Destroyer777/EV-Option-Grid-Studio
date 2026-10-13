@@ -1,0 +1,20 @@
+{
+  "id": "zil-presentation-v1",
+  "name": "ЗИЛ · тестовый сценарий",
+  "description": "Архивная география OpenStreetMap; спрос, стоимость подключения и экономика — синтетические тестовые допущения. Не фактический прогноз района.",
+  "polygon": [
+    {"lat":55.690,"lon":37.611},
+    {"lat":55.727,"lon":37.611},
+    {"lat":55.727,"lon":37.681},
+    {"lat":55.705,"lon":37.681},
+    {"lat":55.690,"lon":37.665}
+  ],
+  "settings": {
+    "dailyDemand":1800,
+    "demandSource":"Синтетический тест ЗИЛ: 1800 зарядных запросов в сутки. Не измеренный спрос. География и существующие зарядные объекты — из встроенного архива OSM.",
+    "posts":4,"postKW":150,"gridKW":300,"energy":25.2,"sessionMinutes":30,
+    "lead":1,"capex":12000000,"opex":1000000,"tariff":24,"energyCost":12,
+    "discount":0.12,"growth":0,"years":10,"radiusM":1200,"outsideWeight":0.3,
+    "defaultPosts":2,"defaultKW":22,"profile":"evening"
+  }
+}

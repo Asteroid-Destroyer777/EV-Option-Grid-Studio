@@ -1,0 +1,14 @@
+[
+  {
+    "lat": 55.694257,
+    "lon": 37.665150875,
+    "passengersPerDay": 25647.966666666667,
+    "source": "https://data.mos.ru/opendata/62743 · архив через https://data.apicrafter.ru/tables/datamos/ptmms/sample",
+    "period": "2021, I квартал, 90 дней",
+    "name": "Технопарк",
+    "incomingQuarter": 1146154,
+    "outgoingQuarter": 1162163,
+    "global_id": 1138976030,
+    "derivation": "(IncomingPassengers + OutgoingPassengers) / 90. Проходы, не уникальные пассажиры; центр по архивным координатам входов 2021."
+  }
+]

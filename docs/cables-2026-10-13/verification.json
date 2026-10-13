@@ -1,0 +1,16 @@
+{
+  "changedFiles": [
+    "index.html",
+    "src/charging-motion.js",
+    "src/styles/evening-hero.css"
+  ],
+  "otherProjectFiles": "Preserved byte for byte from delivered N2 archive",
+  "checks": [
+    "JavaScript syntax",
+    "Scroll: arrival / partial cable connection / charging",
+    "Browser console: no errors or warnings",
+    "Desktop: no horizontal overflow"
+  ],
+  "implementation": "Authored SVG and CSS. No generated raster images.",
+  "credentialsIncluded": false
+}

@@ -1,5 +1,6 @@
 // 3D-станции ЭЗС: навес, посты, автомобили, очередь, световая колонна и кольцо загрузки — всё управляется состоянием симуляции.
 import * as THREE from 'three';
+import {cloneCharger,chargerRow} from './charger-model.js';
 import { Assembly } from './assembly.js';
 import { carGeometry } from './vehicleGeo.js';
 import { makeGlowMaterial, makeVehicleMaterial, PAL } from './materials.js';
@@ -38,7 +39,7 @@ export class StationView {
     this.group.add(this.cars);
 
     // световая колонна, метка, кольцо загрузки
-    const H = def.hero ? 96 : 70;
+    const H = def.hero ? 48 : 35;
     this.beamMat = makeGlowMaterial(STATUS_COL.low, { height: H, alpha: 0.75 });
     const beamGeo = new THREE.CylinderGeometry(0.7, 1.6, H, 12, 1, true); beamGeo.translate(0, H / 2, 0);
     this.beam = new THREE.Mesh(beamGeo, this.beamMat); this.beam.position.set(-12, 0, -11);
@@ -64,13 +65,15 @@ export class StationView {
   place(pos) { this.group.position.set(pos.x, 0, pos.z); this.group.rotation.y = pos.rot || 0; }
 
   rebuildCore(n) {
-    if (this.core) { this.group.remove(this.core); this.core.traverse(o => o.geometry?.dispose?.()); }
+    if (this.core) { this.group.remove(this.core); this.core.traverse(o => {if(o.isInstancedMesh)o.dispose();if(!o.userData.sharedGeometry)o.geometry?.dispose?.();}); }
     const A = new Assembly();
     const nn = Math.max(2, n);
-    addCanopy(A, 0, nn, true);
-    addPosts(A, 0, nn, this.isNew);
+    // The supplied charging unit replaces generic boxes; no solar canopy.
+    A.box('concrete',-12,.025,-4.6,42,.04,2);
+    if(!cloneCharger())addPosts(A,0,nn,this.isNew);
     const getMat = (role) => role === 'led' ? this.ledMat : this.ctx.kit.mat(role, 'built');
     this.core = A.build(getMat);
+    const units=chargerRow(nn,i=>({x:postX(i),y:.1,z:-4.6}));if(units)this.core.add(units);
     this.group.add(this.core);
     this.postsShown = n;
   }
@@ -210,9 +213,9 @@ export class SiteView {
     } else if (this.prepared) this.prepared.visible = false;
     if (ghost) {
       if (!this.ghost) {
-        const A = new Assembly(); addCanopy(A, 0, 6, true); addPosts(A, 0, 6, true);
+        const A = new Assembly(); if(!cloneCharger())addPosts(A,0,6,true);
         A.box('concrete', -6, 0.09, 0, 34, 0.1, 22);
-        this.ghost = A.build((r) => kit.mat(r === 'led' ? 'accent' : r, 'built')); this.ghost.position.x = 4;
+        this.ghost = A.build((r) => kit.mat(r === 'led' ? 'accent' : r, 'built')); this.ghost.position.x = 4;const units=chargerRow(6,i=>({x:postX(i),y:.1,z:-4.6}));if(units)this.ghost.add(units);
         this.group.add(this.ghost);
       }
       this.ghost.visible = true;

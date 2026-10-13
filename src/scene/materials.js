@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 
 export const U = {
+  uMetroFocus: {value:new THREE.Vector3(0,0,0)},
   uTime: { value: 0 },
   uGrid: { value: 0 },
   uNight: { value: 1 },
@@ -75,10 +76,11 @@ export function makeBuildingMaterial() {
         gl_Position = projectionMatrix * viewMatrix * w;
       }`,
     fragment: GLSL_HEAD + /* glsl */`
-      uniform float uFade;
+      uniform float uFade;uniform vec3 uMetroFocus;
       varying vec3 vWorld; varying vec3 vN; varying vec3 vCol; varying vec2 vUv; varying float vSeed; varying float vKind; varying float vNew;
       void main(){
         vec3 n = normalize(vN);
+        if(uMetroFocus.z>0.0 && distance(vWorld.xz,uMetroFocus.xy)<uMetroFocus.z)discard;
         bool roof = vUv.y < -0.5;
         float sun = max(dot(n, uSunDir), 0.0);
         float hemi = 0.52 + 0.48*n.y;

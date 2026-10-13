@@ -85,7 +85,7 @@ export function updateTimeline() {
   document.querySelectorAll('.tl-y').forEach(el => { const y = +el.dataset.arg; el.classList.toggle('on', y === state.year); el.classList.toggle('past', y < state.year); });
   // флажки решений
   const cnt = {}; for (const d of state.decisions) cnt[d.year] = (cnt[d.year] || 0) + 1;
-  $('#tlflags').innerHTML = Object.entries(cnt).map(([y, n]) => { const i2 = YEARS.indexOf(+y); return i2 < 0 ? '' : `<span class="tl-flag" style="left:${(i2 / (YEARS.length - 1)) * 100}%;top:20px" title="Решений в ${y}: ${n}">◆ ${n}</span>`; }).join('');
+  $('#tlflags').innerHTML = Object.entries(cnt).map(([y, n]) => { const i2 = YEARS.indexOf(+y); return i2 < 0 ? '' : `<span class="tl-flag" style="left:${(i2 / (YEARS.length - 1)) * 100}%;top:0px" title="Решений в ${y}: ${n}">◆ ${n}</span>`; }).join('');
   document.querySelectorAll('#scnseg button').forEach(b => b.classList.toggle('on', b.dataset.arg === state.scenario));
   const pl = $('#tlplay'); if (pl) pl.innerHTML = state.playing ? ICONS.pause : ICONS.play;
 }

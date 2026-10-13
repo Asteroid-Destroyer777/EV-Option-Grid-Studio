@@ -5,18 +5,26 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculateRequest } from './src/simulation/service.js';
 import {loadArea} from './src/district/source.js';
+import {assistantResponse,limitAssistant} from './src/assistant/service.js';
+import {rankDistrict} from './src/district/ranking.js';
 import {calculateDistrict} from './src/district/model.js';
 
+try{const env=await readFile(new URL('.env.local',import.meta.url),'utf8');for(const line of env.split(/\r?\n/)){const m=line.match(/^([A-Z_]+)=(.*)$/);if(m&&!process.env[m[1]])process.env[m[1]]=m[2].trim();}}catch{}
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.argv[2]) || 5173;
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
+const types = { '.html': 'text/html; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
 
 http.createServer(async (req, res) => {
+  if(req.url==='/api/assistant'){
+    res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');
+    if(req.method!=='POST'){res.writeHead(405);return res.end(JSON.stringify({error:'Используйте POST.'}));}
+    try{if(!String(req.headers['content-type']||'').includes('application/json'))throw new Error('Нужен JSON.');if(req.headers.origin&&new URL(req.headers.origin).host!==req.headers.host)throw new Error('Недопустимый источник запроса.');limitAssistant(req.socket.remoteAddress||'local');let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>200000)throw new Error('Запрос слишком большой.');raw+=chunk;}const result=await assistantResponse(JSON.parse(raw));res.writeHead(200);res.end(JSON.stringify(result));}catch(e){res.writeHead(400);res.end(JSON.stringify({error:e.message}));}return;
+  }
   if(req.url==='/api/district'){
     res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');
     if(req.method!=='POST'){res.writeHead(405);return res.end(JSON.stringify({error:'Используйте POST.'}));}
-    try{let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>1500000)throw new Error('Запрос слишком большой.');raw+=chunk;}
-      const data=JSON.parse(raw),result=data.action==='load'?await loadArea(data.bounds):calculateDistrict(data.input);
+    try{let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>10000000)throw new Error('Запрос слишком большой.');raw+=chunk;}
+      const data=JSON.parse(raw),result=data.action==='load'?await loadArea(data.bounds):data.action==='rank'?rankDistrict(data.input,data.options):calculateDistrict(data.input);
       res.writeHead(200);res.end(JSON.stringify(result));
     }catch(e){res.writeHead(400);res.end(JSON.stringify({error:e.message}));}return;
   }
@@ -32,14 +40,15 @@ http.createServer(async (req, res) => {
   }
   try {
     let p = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
+    if(p.split(/[\\/]/).some(s=>s.startsWith('.'))||/\.(blend|py|log)$/i.test(p))throw new Error('forbidden');
     if (p.endsWith('/') || p === '') p = join(p, 'index.html');
     let file = join(root, p);
     if (!file.startsWith(root)) throw new Error('forbidden');
     if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
     const data = await readFile(file);
-    res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+    res.writeHead(200, { 'Content-Type': file.endsWith('.json.gz')?'application/json':types[extname(file)] || 'application/octet-stream', ...(file.endsWith('.json.gz')?{'Content-Encoding':'gzip'}:{}), 'Cache-Control': 'no-store' });
     res.end(data);
   } catch {
     res.writeHead(404); res.end('Not found');
   }
-}).listen(port, '127.0.0.1', () => console.log(`EV-Option Grid: http://localhost:${port}/`));
+}).listen(port, process.env.HOST || '127.0.0.1', () => console.log(`EV-Option Grid: http://localhost:${port}/`));

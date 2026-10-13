@@ -5,6 +5,7 @@ export const state = {
   scenario: 'base',
   activeLayer: 'city',
   selectedZone: 'zil',
+  metroFocus:null,
   selectedStation: null,
   selectedNode: null,
   selectedSite: null,

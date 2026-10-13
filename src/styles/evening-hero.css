@@ -1,0 +1,55 @@
+/* D1: real city photography, photographic vehicle and scroll-controlled layers. */
+.hero-photo .city-backdrop{object-position:50% 43%;filter:saturate(.8) brightness(.8);transform:scale(1.015)}
+.city-shade{background:linear-gradient(90deg,#081320a6 3%,#10192722 61%,#10192705),linear-gradient(180deg,#111a2538,#111a2500 44%,#12212ed9 82%,#14212e)}
+.hero-title{margin-top:24px;max-width:760px;letter-spacing:-.065em}
+.hero-small{font:10px 'IBM Plex Mono';letter-spacing:.16em;margin-bottom:17px;color:#d0d9e4}
+.hero-grid{display:block;font:500 clamp(64px,8.2vw,124px)/.96 Onest;letter-spacing:-.07em;margin:0}
+.hero-grid>span{display:block;width:max-content;max-width:100%}
+.hero-grid>span:last-child{color:#e2edf1}
+.motion-stage{inset:31% 2% 7%}
+.hero-photo:after{content:'';position:absolute;left:2%;right:2%;bottom:20%;height:1px;background:#86bec54a;box-shadow:0 0 16px #78c3d52b;pointer-events:none}
+.charge-status{top:7%;background:#12202fb8;border-color:#a1bfc744;border-radius:8px}
+.charge-status small{line-height:1.55;font-size:10px}
+.charge-track i{background:#a4d2dd}
+.hero-caption a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.section-cut,.tesla-section,.section-indicator{opacity:0;pointer-events:none}
+.tesla-layer.scanning .section-cut,.tesla-layer.scanning .tesla-section,.tesla-layer.scanning .section-indicator{opacity:1}
+.tesla-section{filter:drop-shadow(0 0 3px #94c9df55)}
+.section-rule{filter:drop-shadow(0 0 4px #a4d7e36b)}
+[data-tesla-hit]{cursor:crosshair;outline:none;touch-action:pan-y}
+[data-tesla-hit]:focus-visible{stroke:#c0e9ec;stroke-width:1.5}
+#connector-cursor svg{display:none}
+#connector-cursor span{font:11px Onest;border-color:#85b3c5;background:#162c3ee8;color:#d7e9ef}
+@media(max-width:700px){.hero-title{margin-top:28px;max-width:100%}.hero-small{font-size:8px;margin-bottom:16px}.hero-grid{font-size:clamp(48px,12.7vw,84px);line-height:1.02}.motion-stage{inset:33% 1% 27%;}.hero-photo .city-backdrop{object-position:52% 40%}.charge-status{top:auto;bottom:26%;right:5%;width:200px}.hero-overline .edition{display:none}.hero-caption{font-size:6px}.hero-bottom{bottom:60px}.hero-photo:after{bottom:28%}}
+@media(prefers-reduced-motion:reduce){.hero-photo .city-backdrop{transform:none}.tesla-layer{will-change:auto}.hero-grid>span{transform:none!important}.section-rule{filter:none}}
+
+.motion-stage{user-select:none;-webkit-user-select:none}
+
+/* N2: feathered optical lens and insulated, lit underground cables. */
+.section-indicator{transition:opacity .16s ease}.tesla-section{filter:none}.lens-ring{filter:drop-shadow(0 0 4px #83aaff44)}
+.energy-plane .current-paths{animation:none;opacity:0}.charging-active .energy-plane .current-paths{animation:neon-current 2.8s linear infinite;opacity:1}.cable-glow{opacity:calc(.22 + var(--charge,0)*.48)}
+@keyframes neon-current{to{stroke-dashoffset:-234}}
+@media(prefers-reduced-motion:reduce){.energy-plane .current-paths{animation:none!important;opacity:.65}.section-indicator{transition:none}}
+@media(max-width:700px){.charge-status{width:90%;right:5%;bottom:24%;padding:12px 14px}.charge-status small{font-size:9px;line-height:1.4}.charge-status b{font-size:11px}.charge-track{margin:9px 0}}
+
+/* Cable-only revision: authored sleeves, coupling rings and active energy cores. */
+.detailed-cables .conduit-aura{opacity:calc(.14 + var(--charge,0)*.65)}
+.detailed-cables .conduit-core{opacity:calc(.28 + var(--charge,0)*.72)}
+.charging-lead .lead-halo{opacity:calc(var(--charge,0)*.72)}
+.charging-lead .lead-pulse{opacity:0}
+.charging-active .charging-lead .lead-pulse{opacity:.9;animation:charging-lead-current 2.6s linear infinite}
+.charging-active .detailed-cables .conduit-1 .conduit-pulse{animation-duration:3.7s;animation-delay:-1.2s}
+.charging-active .detailed-cables .conduit-2 .conduit-pulse{animation-duration:3.1s;animation-delay:-.7s}
+.charging-active .detailed-cables .conduit-3 .conduit-pulse{animation-duration:4.2s;animation-delay:-2.3s}
+@keyframes charging-lead-current{to{stroke-dashoffset:176}}
+@media(prefers-reduced-motion:reduce){.charging-active .charging-lead .lead-pulse{animation:none;opacity:.5}.charging-active .detailed-cables .conduit-pulse{animation:none!important}}
+
+/* Wheel rotation is derived from travelled distance; emissive details stay registered to the photographs. */
+.station-emission{opacity:calc(.32 + var(--charge,0)*.68)}
+.vehicle-headlights{opacity:.95}.wheel-rotor{will-change:transform}.current-emitter{opacity:0}
+.charging-active .current-emitter{opacity:1}.detailed-cables .conduit-aura{opacity:calc(.12 + var(--charge,0)*.8)}
+.charging-active .detailed-cables .conduit-pulse{animation-duration:1.85s;stroke-width:2.2}
+.charging-lead .lead-halo{opacity:calc(var(--charge,0)*.85)}
+@media(prefers-reduced-motion:reduce){.current-emitter{display:none}.wheel-rotor{will-change:auto}.vehicle-headlights{opacity:.75}}
+
+.hero-caption{justify-content:flex-end}

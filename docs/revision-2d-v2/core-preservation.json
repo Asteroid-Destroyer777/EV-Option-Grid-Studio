@@ -1,0 +1,26 @@
+[
+  {
+    "file": "src/simulation/engine.js",
+    "unchangedFromOriginalMain": true
+  },
+  {
+    "file": "src/simulation/spatial.js",
+    "unchangedFromOriginalMain": true
+  },
+  {
+    "file": "src/simulation/economics.js",
+    "unchangedFromOriginalMain": true
+  },
+  {
+    "file": "src/simulation/params.js",
+    "unchangedFromOriginalMain": true
+  },
+  {
+    "file": "src/simulation/recommend.js",
+    "unchangedFromOriginalMain": true
+  },
+  {
+    "file": "src/simulation/policies.js",
+    "unchangedFromOriginalMain": true
+  }
+]

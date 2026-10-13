@@ -113,7 +113,7 @@ export class Traffic {
     this.tmp = { x: 0, y: 0, z: 0, dx: 1, dz: 0 };
     this.flows = [];
     this.layerAlpha = 0.2;
-    this._buildAmbient(320);
+    this._buildAmbient(matchMedia('(max-width: 700px)').matches?260:460);
     this.ribbons = new THREE.Group(); this.group.add(this.ribbons);
     this.pickables = [];
   }
@@ -124,11 +124,11 @@ export class Traffic {
     this.amb.mesh.frustumCulled = false;
     this.amb.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3);
     this.group.add(this.amb.mesh);
-    this.ambActive = 240;
+    this.ambActive = 300;
     this.evShare = 0.12;
     const N = this.graph.nodes.length;
     for (let i = 0; i < n; i++) {
-      const v = { path: null, s: 0, seg: 0, speed: 8 + Math.random() * 6, lane: 1.7, ev: Math.random(), sc: 0.95 + Math.random() * 0.2, wait: Math.random() * 3 };
+      const v = { path: null, s: 0, seg: 0, speed: 8 + Math.random() * 6, lane: 1.7, ev: Math.random(), sc: 1 + Math.random() * 0.12, wait: Math.random() * 3 };
       this._newRoute(v, Math.floor(Math.random() * N), true);
       this.amb.v.push(v);
     }
@@ -150,7 +150,7 @@ export class Traffic {
   }
   _recolorAmbient() {
     const c = new THREE.Color();
-    const ice = ['#d5f3ff', '#a9e6ff', '#ffffff'], dark = ['#3d404b', '#565a66', '#2b2e38', '#6d5f5a', '#4a5468', '#7a7d88'];
+    const ice = ['#d5f3ff', '#a9e6ff', '#ffffff'], dark = ['#c8c9c9', '#8699af', '#dddddf', '#a07564', '#54718a', '#424c61'];
     this.amb.v.forEach((v, i) => {
       const ev = v.ev < this.evShare;
       const arr = ev ? ice : dark;

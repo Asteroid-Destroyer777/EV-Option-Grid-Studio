@@ -1,0 +1,5 @@
+// A successful exact-bounds download can be reused offline; no foreign district fallback.
+const key=b=>JSON.stringify(b);
+async function db(){if(typeof indexedDB==='undefined')return null;return new Promise((resolve,reject)=>{const r=indexedDB.open('ev-grid-geography-v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('areas',{keyPath:'key'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+export async function savedArea(bounds){let d;try{d=await db();if(!d)return null;return await new Promise(resolve=>{const r=d.transaction('areas').objectStore('areas').get(key(bounds));r.onsuccess=()=>resolve(r.result?.area||null);r.onerror=()=>resolve(null);});}catch{return null;}finally{d?.close();}}
+export async function saveArea(area){let d;try{d=await db();if(!d)return;await new Promise(resolve=>{const t=d.transaction('areas','readwrite'),store=t.objectStore('areas');store.put({key:key(area.bounds),time:Date.now(),area});const r=store.getAll();r.onsuccess=()=>r.result.sort((a,b)=>b.time-a.time).slice(20).forEach(x=>store.delete(x.key));t.oncomplete=t.onerror=t.onabort=()=>resolve();});}catch{}finally{d?.close();}}

@@ -1,4 +1,5 @@
 // План зарядной сети — точка входа: данные → 3D-двойник → состояние → интерфейс → вводная демонстрация.
+import {initAssistant} from './assistant/ui.js';
 import * as THREE from 'three';
 import { motion } from './experience.js';
 import { loadGeo, geo, polyBounds } from './data/geo.js';
@@ -20,6 +21,7 @@ async function boot() {
   await loadGeo('data/zil.json', p => { $('#bootbar').style.width = (p * 10) + '%'; });
   initDataset();
   initUI();
+  initAssistant();
   const twin = await createTwin({ canvas: $('#gl'), labelsEl: $('#labels'), onStep: (t, p) => { $('#bootstep').textContent = t; $('#bootbar').style.width = (10 + p * 90) + '%'; } });
   twin.waterPolys = geo.data.water.map(w => ({ o: w.o, h: w.h || [], bb: polyBounds(w.o) }));
 

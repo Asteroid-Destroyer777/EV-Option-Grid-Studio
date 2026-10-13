@@ -1,5 +1,8 @@
 // Цифровой двойник: сборка сцены и синхронизация 3D с состоянием приложения и результатами симуляции.
 import * as THREE from 'three';
+import {loadChargerModel} from './charger-model.js';
+import {buildMetroEntrances} from './metro.js';
+import {buildDreamIsland} from './dream-island.js';
 import { motion } from '../experience.js';
 import { geo, polyBounds, polyCentroid } from '../data/geo.js';
 import { dataset as ds, findLand } from '../data/dataset.js';
@@ -41,6 +44,7 @@ export async function createTwin({ canvas, labelsEl, onStep }) {
   const chim = buildChimneys(scene);
 
   await step('Станции ЭЗС и площадки', 0.74);
+  await loadChargerModel();
   const ctx = makeStationContext();
   const views = new Map(), sites = new Map();
   const stationRoot = new THREE.Group(); scene.add(stationRoot);
@@ -58,7 +62,10 @@ export async function createTwin({ canvas, labelsEl, onStep }) {
   const grid = new GridView(ds, graph, scene);
   const ring = new OptionRing(scene, ctx); scene.add(ring.group);
   const labels = new Labels(labelsEl, camera, world);
+  await buildMetroEntrances(scene,labels,p=>p?orbit.flyTo({tx:p.x,ty:1.6,tz:p.z,dist:29,az:p.orientation??-.5,pol:1.13},2.7):orbit.flyTo({tx:760,ty:0,tz:250,dist:2100,az:-.55,pol:.9},2));
   const orbit = new OrbitRig(camera, canvas);
+  buildDreamIsland(scene,labels,p=>{setLandmarkFocus(p);});
+  function setLandmarkFocus(p){import('../state.js').then(({setState})=>setState({view:'map',activeLayer:'city',panelHidden:true,metroFocus:null}));orbit.flyTo({tx:p.x,ty:17,tz:p.z,dist:310,az:-Math.PI/2,pol:1.05},2.5);}
   orbit.bounds = { x: geo.meta.halfW, z: geo.meta.halfH };
 
   const twin = {
@@ -126,7 +133,7 @@ export async function createTwin({ canvas, labelsEl, onStep }) {
   };
 
   twin.applyState = function (state, sim) {
-    this.state = state; this.sim = sim;
+    this.state = state; this.sim = sim;const focus=state.metroFocus;if(focus&&!state.selectedStation&&state.activeLayer==='city'&&state.view==='map')U.uMetroFocus.value.set(focus.x,focus.z,24);else U.uMetroFocus.value.set(0,0,0);
     const layer = state.activeLayer;
     // станции существующие
     const previewOpt = state.hoverOption || state.focusOption || null;
@@ -179,7 +186,7 @@ export async function createTwin({ canvas, labelsEl, onStep }) {
       map[f.id] = (0.55 + 0.45 * ((F - 1) * f.growth + 1)) * boost * 0.9;
     }
     traffic.setIntensities(map);
-    traffic.setAmbient(200 + 70 * Math.min(3, F - 1), Math.min(0.72, 0.1 + 0.15 * (F - 1)));
+    traffic.setAmbient(300 + 70 * Math.min(3, F - 1), Math.min(0.72, 0.1 + 0.15 * (F - 1)));
     traffic.setLayer(layer);
     traffic.highlight(state.selectedFlow);
 

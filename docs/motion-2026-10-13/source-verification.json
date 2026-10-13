@@ -1,0 +1,20 @@
+{
+  "changedFiles": [
+    "district.html",
+    "index.html",
+    "src/charging-motion.js",
+    "src/district/calculation-motion.css",
+    "src/district/calculation-presentation.js",
+    "src/district/usability.css",
+    "src/styles/evening-hero.css",
+    "src/styles/investment-story.css",
+    "tests/revision-v3.test.mjs"
+  ],
+  "unchangedSourceFiles": 453,
+  "allFormFieldsPreserved": 32,
+  "newAssets": [
+    "assets/beaver-connection-wide.png",
+    "assets/beaver-connection-detail.png"
+  ],
+  "businessModules": "Unchanged byte for byte from delivered cable release"
+}

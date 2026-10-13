@@ -1,0 +1,14 @@
+/* C1: a quiet material background around the working surface. */
+.district-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:strict;opacity:.62}
+.ambient-ball{position:absolute;width:var(--size);aspect-ratio:1;transition:transform 1.1s cubic-bezier(.2,.65,.3,1);transform:translate3d(var(--ambient-x,0px),var(--ambient-y,0px),0)}
+.ambient-ball i{display:block;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 32% 24%,#6c7f99 0,#3a4a60 32%,#1b2a3a 67%,#11202b 100%);border:1px solid #91a7c51f;box-shadow:inset -18px -20px 40px #0c18283d;animation:ambient-drift var(--duration,17s) ease-in-out var(--delay,0s) infinite alternate}
+.ambient-ball:nth-child(1){left:-12%;top:15%;--size:320px;--duration:18s}
+.ambient-ball:nth-child(2){right:-7%;top:3%;--size:380px;--duration:21s;--delay:-8s}
+.ambient-ball:nth-child(3){left:6%;bottom:-12%;--size:210px;--duration:16s;--delay:-5s}
+.ambient-ball:nth-child(4){right:12%;bottom:-10%;--size:190px;--duration:24s;--delay:-12s}
+.ambient-ball:nth-child(5){left:31%;top:-11%;--size:160px;--duration:22s;--delay:-4s}
+body>main{position:relative;z-index:1}
+body.ambient-paused .ambient-ball i{animation-play-state:paused}
+@keyframes ambient-drift{from{transform:translate3d(0,0,0) rotate(-5deg)}to{transform:translate3d(20px,-27px,0) rotate(8deg)}}
+@media(max-width:700px){.district-ambient{opacity:.35}.ambient-ball:nth-child(1){left:-50%;--size:270px}.ambient-ball:nth-child(2){right:-65%;--size:310px}.ambient-ball:nth-child(n+3){display:none}}
+@media(prefers-reduced-motion:reduce){.ambient-ball,.ambient-ball i{animation:none!important;transition:none;transform:none}}

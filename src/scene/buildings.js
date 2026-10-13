@@ -1,5 +1,6 @@
 // Здания: реальные контуры OSM → один слитый BufferGeometry (низкополигональный), плюс сетка коллизий.
 import * as THREE from 'three';
+import {isDreamIsland} from './dream-island.js';
 import { geo, SpatialGrid, polyBounds, hash2 } from '../data/geo.js';
 import { makeBuildingMaterial, PAL } from './materials.js';
 
@@ -63,6 +64,7 @@ export function buildBuildings(extra) {
     const n = ring.length / 2;
     if (n < 3) continue;
     const seed = hash2(Math.round(ring[0] * 3), Math.round(ring[1] * 3));
+    if(isDreamIsland(name)){const bb=polyBounds(ring),item={ring,h,kind,name,bb,idx:bi};list.push(item);grid.insert(item,bb.x0,bb.z0,bb.x1,bb.z1);continue;}
     const isNew = (flags & 1) ? 1 : 0;
     tmpC.set(isNew ? PAL.bldgNew : PAL.bldg[kind] ?? PAL.bldg[0]);
     const v = 0.86 + seed * 0.28;

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "moscow-arbat",
+    "name": "Москва · Арбат",
+    "bounds": [
+      55.744,
+      37.584,
+      55.754,
+      37.604
+    ],
+    "passed": false,
+    "error": "Источники OSM недоступны (maps.mail.ru: HTTP 504; overpass.private.coffee: HTTP 429; overpass-api.de: HTTP 406). Сохранённые расчёты и импорт продолжают работать.",
+    "elapsedMs": 4273
+  },
+  {
+    "id": "kazan-center",
+    "name": "Казань · центр",
+    "bounds": [
+      55.783,
+      49.112,
+      55.793,
+      49.132
+    ],
+    "passed": false,
+    "error": "Источники OSM недоступны (maps.mail.ru: HTTP 504; overpass.private.coffee: HTTP 429; overpass-api.de: HTTP 406). Сохранённые расчёты и импорт продолжают работать.",
+    "elapsedMs": 1442
+  },
+  {
+    "id": "petersburg-center",
+    "name": "Санкт-Петербург · центр",
+    "bounds": [
+      59.931,
+      30.332,
+      59.941,
+      30.352
+    ],
+    "passed": false,
+    "error": "Источники OSM недоступны (maps.mail.ru: HTTP 504; overpass.private.coffee: HTTP 429; overpass-api.de: HTTP 406). Сохранённые расчёты и импорт продолжают работать.",
+    "elapsedMs": 1156
+  }
+]

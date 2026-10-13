@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-12",
+  "stations": 23,
+  "buildings": 4050,
+  "entrances": 15,
+  "candidatesEvaluated": 73,
+  "top10": 10,
+  "nodeRankingMs": 417,
+  "serverMatchesBrowserModel": true,
+  "best": {
+    "coordinates": {
+      "lat": 55.71435,
+      "lon": 37.657399999999996,
+      "id": "grid-66",
+      "kind": "screening",
+      "name": "Расчётная точка",
+      "evidence": "Геометрический кандидат; требуется проверка подъезда, земли и сетей",
+      "metrics": {
+        "attraction": 0.9990176126432645,
+        "transport": 1,
+        "gridDistanceM": 91.45445810201706,
+        "competitorDistanceM": 178.51342373811187,
+        "transportDistanceM": 639.6955129416802
+      },
+      "attractiveness": 1.3496561644251426
+    },
+    "npv": -8860889.524248557,
+    "networkGain": 1.3277979828328625
+  },
+  "rankingJsonBytes": 1738040
+}

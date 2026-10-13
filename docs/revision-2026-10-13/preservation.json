@@ -1,0 +1,15 @@
+{
+  "formFieldsPreserved": true,
+  "modelFiles": {
+    "src/simulation/engine.js": true,
+    "src/simulation/spatial.js": true,
+    "src/simulation/economics.js": true,
+    "src/simulation/params.js": true,
+    "src/simulation/recommend.js": true,
+    "src/simulation/policies.js": true,
+    "src/district/model.js": true,
+    "src/district/ranking.js": true,
+    "src/district/geography.js": true,
+    "src/district/source.js": true
+  }
+}

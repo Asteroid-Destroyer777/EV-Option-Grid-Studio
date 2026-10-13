@@ -29,11 +29,11 @@ export function setYear(y) {
   setState(patch);
 }
 export function setScenario(id) { setState({ scenario: id }); }
-export function setView(v) { setState({ view: v, ...(v === 'map' ? { panelHidden: false } : {}) }); }
+export function setView(v) { setState({ view: v, metroFocus:null, ...(v === 'map' ? { panelHidden: false } : {}) }); }
 
 export function setLayer(layer) {
   if (state.walkMode && layer === 'future') { }
-  const patch = { activeLayer: layer };
+  const patch = { activeLayer: layer, metroFocus:null };
   if (layer === 'future') { if (state.year !== 2035) { patch.prevYear = state.year; patch.year = 2035; } }
   else if (state.activeLayer === 'future' && state.prevYear && state.year === 2035) { patch.year = state.prevYear; patch.prevYear = null; }
   if (layer === 'investment' && !state.selectedStation) { patch.selectedStation = 'ZIL-01'; patch.panelTab = 'options'; }
@@ -67,7 +67,7 @@ export function flyToStation(id, { dist = 190, pol = 0.95, az } = {}) {
 
 export function selectStation(id, { fly = true, tab } = {}) {
   setState({ panelHidden: false });
-  setState({ selectedStation: id, selectedNode: null, selectedSite: null, selectedFlow: null, panelTab: tab || (state.activeLayer === 'investment' ? 'options' : (state.panelTab === 'options' ? 'options' : 'passport')), view: 'map' });
+  setState({ selectedStation: id, metroFocus:null, selectedNode: null, selectedSite: null, selectedFlow: null, panelTab: tab || (state.activeLayer === 'investment' ? 'options' : (state.panelTab === 'options' ? 'options' : 'passport')), view: 'map' });
   if (fly && !state.walkMode) flyToStation(id, { dist: state.activeLayer === 'investment' ? 260 : 210 });
 }
 export function selectNode(id, { fly = true } = {}) {

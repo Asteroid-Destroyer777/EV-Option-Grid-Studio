@@ -1,10 +1,9 @@
+import {initTypography} from './ui/typography.js';
 // Presentation-only motion. Model, form events and camera input remain independent.
 const root = document.documentElement;
 const media = matchMedia('(prefers-reduced-motion: reduce)');
-let preference = false;
-try { preference = localStorage.getItem('ev-motion-off') === '1'; } catch {}
 let activeAnimations = new Set();
-export const motion = { get enabled() { return !media.matches && !preference; } };
+export const motion = { get enabled() { return !media.matches; } };
 
 function animate(el, frames, options) {
   if (!motion.enabled || !el?.animate) return;
@@ -44,6 +43,7 @@ syncMotion();
 media.addEventListener('change', syncMotion);
 
 function init() {
+  initTypography();
   const steps = [...document.querySelectorAll('.steps span')], result = document.querySelector('#results'), load = document.querySelector('#load');
   if (steps.length && result && load) {
     const updateSteps = () => {
@@ -61,17 +61,6 @@ function init() {
       for (const entry of entries) if (entry.isIntersecting) { reveal(entry.target); revealObserver.unobserve(entry.target); }
     }, {threshold:.12, rootMargin:'0px 0px -30px 0px'});
     document.querySelectorAll('[data-reveal]').forEach(el => revealObserver.observe(el));
-  }
-  const host = document.querySelector('.site-footer') || document.querySelector('footer') || document.querySelector('#rail .brand');
-  if (host) {
-    const button = document.createElement('button');
-    button.className = 'ev-motion-toggle'; button.type = 'button';
-    button.addEventListener('click', () => {
-      preference = !preference;
-      try { localStorage.setItem('ev-motion-off', preference ? '1' : '0'); } catch {}
-      syncMotion();
-    });
-    host.append(button); syncMotion();
   }
   // Only animate the existing panels when their own content is replaced.
   // Never observe map labels or the constantly updated decision chain.

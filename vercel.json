@@ -1,0 +1,1 @@
+{"headers":[{"source":"/data/moscow-osm/(.*).json.gz","headers":[{"key":"Content-Type","value":"application/json"},{"key":"Content-Encoding","value":"gzip"}]}]}
