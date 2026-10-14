@@ -53,3 +53,11 @@
 @media(prefers-reduced-motion:reduce){.current-emitter{display:none}.wheel-rotor{will-change:auto}.vehicle-headlights{opacity:.75}}
 
 .hero-caption{justify-content:flex-end}
+
+/* Keep the moving vehicle cheap to paint; enable its mask only during inspection. */
+.tesla-layer{filter:none}
+.tesla-layer:not(.scanning) .tesla-exterior{mask:none}
+.charge-status{backdrop-filter:none;background:#12202fe8}
+.lens-ring{filter:none}
+/* Moving packets already carry the current: avoid a second dash animation on every cable. */
+.charging-active .energy-plane .current-paths,.charging-active .charging-lead .lead-pulse{animation:none;opacity:0}
