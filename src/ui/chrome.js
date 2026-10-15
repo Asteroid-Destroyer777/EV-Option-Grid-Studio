@@ -108,7 +108,7 @@ export function renderLegend() {
 export function updateLegend() {
   const el = $('#legend3d'); if (!el) return;
   const l = state.activeLayer;
-  let h = `<div class="mn">Загрузка ЭЗС</div>
+  let h = `<div class="mn">Загрузка ЭЗС · максимум средней и пиковой</div>
     <div class="lr"><i style="background:var(--st-low)"></i>&lt; 50% · низкая</div>
     <div class="lr"><i style="background:var(--st-mid)"></i>50–80% · нормальная</div>
     <div class="lr"><i style="background:var(--st-high)"></i>&gt; 80% · высокая</div>
@@ -141,7 +141,7 @@ export function renderChain() {
   const steps = [
     ['Спрос', `рост ×${num(sim.F, 2)}`, sim.F > 2 ? 'warn' : '', 'demand'],
     ['Загрузка', `${pct(T.util)} · ${sim.stations.length} ЭЗС`, T.util > 0.8 ? 'bad' : T.util > 0.55 ? 'warn' : 'ok', 'city'],
-    ['Энергосеть', ncap ? `${ncap} ограничений` : 'без дефицита', ncap ? 'bad' : 'ok', 'grid'],
+    ['Энергосеть', ncap ? `${ncap} ограничений` : 'в демо-лимитах', ncap ? 'bad' : 'ok', 'grid'],
     ['Варианты', pkg ? `${pkg.options.length} в пакете` : '8 вариантов', '', 'investment'],
     ['Экономика', rec ? `ЧПС ${mln(rec.best.expNpv)}` : 'выберите ЭЗС', '', 'economics'],
     ['План', state.decisions.length ? `${state.decisions.length} шаг. · ${int(totalCapex)} млн ₽` : 'собрать план', '', 'plan'],

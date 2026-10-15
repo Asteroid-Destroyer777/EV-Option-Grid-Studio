@@ -1,0 +1,74 @@
+/* Targeted audit repairs; the established studio skin remains the base. */
+.skip-link{position:fixed;left:12px;top:-100px;z-index:200;padding:12px 16px;background:#20262c;color:#fff;border:2px solid #c9d1ff;border-radius:6px}
+.skip-link:focus{top:12px}
+#nav-toggle,#nav-backdrop{display:none}
+.tl-y:focus-visible{outline:3px dashed #fff;outline-offset:5px;border-radius:4px}
+.tl-y[aria-pressed="true"] b{color:#c9d1ff;text-decoration:underline;text-underline-offset:5px}
+#sheet:focus{outline:none}
+#sheet[aria-modal="true"]{z-index:80}
+.seg button,.ph .x,.tabs button,.sheet-x,.btn{min-height:44px}
+.ph .x{width:44px}
+.bigload .d{min-width:0}
+.bigload .note{line-height:1.55}
+.kv b small{line-height:1.5}
+.kv>div{min-width:0}
+#main:focus-visible{outline:none}
+#beaver-launch{bottom:88px;right:calc(var(--panel-w) + 40px)}
+#app:not([data-view="map"])~#beaver-launch{visibility:hidden}
+
+@media (max-width:768px){
+  :root{--rail-w:0px;--panel-w:calc(100vw - 24px);--top-h:150px}
+  #nav-toggle{display:flex;position:absolute;left:12px;top:8px;z-index:70;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid #64758c;border-radius:6px;background:#202a38;color:#eef2f7;font-size:15px;pointer-events:auto}
+  #nav-toggle span{font-size:12px}
+  #rail{width:min(300px,calc(100vw - 56px));z-index:100;transform:translateX(-110%);transition:transform .2s ease;padding-top:18px;visibility:hidden;pointer-events:none}
+  #app.nav-open #rail{transform:translateX(0);visibility:visible;pointer-events:auto}
+  #nav-backdrop:not([hidden]){display:block;position:fixed;inset:0;z-index:90;background:#0009;pointer-events:auto}
+  #rail .brand{padding:0 18px 14px}
+  #rail .brand-name,#rail .brand-sub,#rail .city,#rail .rail-block,#rail .credit{display:block}
+  #rail .brand-name{font-size:16px}
+  #rail .city{margin:12px 18px}
+  #rail .city b{font-size:30px}
+  #rail .nav{padding:8px 12px;gap:4px}
+  #rail .nav button{justify-content:flex-start;min-height:48px;padding:10px 12px;gap:12px;text-align:left}
+  #rail .nav .t{display:block;font-size:13px;line-height:1.4;text-align:left;overflow-wrap:normal}
+  #rail .nav .ix{display:inline;font-size:11px}
+  #rail .rail-btn,#rail .metro-navigation button{min-height:44px;font-size:12px}
+  #rail .rail-block{padding:12px 18px}
+  #topbar{left:0;height:var(--top-h);display:flex;flex-wrap:wrap;align-content:flex-end;gap:4px;padding:50px 18px 8px}
+  #topbar .place{display:none}
+  #topbar .tl{width:100%;min-width:0;max-width:none;height:42px;padding:0;margin:0}
+  .tl-years{height:26px;margin:0}
+  .tl-y{min-height:44px;min-width:44px}
+  .tl-y b{font-size:21px}
+  .tl-y small{display:none}
+  .tl-track{margin:0 0 4px;height:14px}
+  #topbar .scn{width:100%;min-width:0}
+  .scn .mn{display:none}
+  .seg{display:flex;padding:2px}
+  .seg button{flex:1;min-height:44px;padding:8px;font-size:12px}
+  #chain{display:none}
+  #panel{right:12px;top:auto;bottom:82px;max-height:calc(100dvh - var(--top-h) - 95px);width:var(--panel-w)}
+  .ph{padding:10px 48px 10px 14px}
+  .ph .x{top:3px;right:4px}
+  .ph h2{font-size:18px}
+  .ph .sub{display:none}
+  .pbody{padding:14px 14px 24px}
+  .tabs button{font-size:12px}
+  #dock{left:50%;bottom:12px;width:calc(100vw - 24px);max-width:none;padding:4px;gap:0}
+  #dock .dk{flex:1;min-width:0;min-height:52px;padding:8px 2px}
+  .dk .nn{font-size:10px;flex-direction:column;gap:4px}
+  .dk .kk{display:none}
+  .dk svg{width:16px;height:16px}
+  #dock .dk.walk{display:none}
+  #sheet{left:0;top:0;padding:24px 16px 30px}
+  .sheet-in{overflow-x:auto}
+  .sheet-x{position:sticky;bottom:0;margin:24px 0 0 auto;background:#263444;min-width:120px}
+  #beaver-launch{top:8px;bottom:auto;right:12px;min-height:44px;padding:4px 8px 4px 4px}
+  #beaver-launch img{width:32px;height:32px}
+  #beaver-launch>span{display:none}
+  #guide{left:12px;right:12px;max-height:calc(100dvh - 190px)}
+  #restore-panel{left:12px;bottom:84px;max-width:calc(100vw - 24px)}
+  .legend-3d{display:none}
+}
+@media (hover:none) and (pointer:coarse){#dock .dk.walk{display:none}.btn,.seg button,.tabs button{min-height:44px}}
+@media (prefers-reduced-motion:reduce){#rail{transition:none}}

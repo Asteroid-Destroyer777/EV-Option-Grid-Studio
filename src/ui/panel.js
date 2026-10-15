@@ -7,7 +7,7 @@ import { recommendation, currentPackage } from '../actions.js';
 import { explain } from '../simulation/explain.js';
 import { pkgKey } from '../simulation/recommend.js';
 import { OPTIONS, OPTION_LIST, USER_TYPES, SCENARIOS, MODEL, ALL_YEARS, YEARS, growthAt } from '../simulation/params.js';
-import { num, int, pct, mln, sgn, esc, TAG, chipStatus, STATUS_RU, RISK_RU, riskCls, pkCode, pkText, pkRu, lineChart, nodeBars, demandCurve, ICONS } from './format.js';
+import { num, int, pct, mln, sgn, esc, TAG, chipStatus, STATUS_RU, RISK_RU, riskCls, pkCode, pkText, pkRu, lineChart, nodeBars, demandCurve, ICONS, queueText, attentionCompare } from './format.js';
 
 const $ = (s) => document.querySelector(s);
 let lastKey = '';
@@ -61,7 +61,7 @@ function passportTab(def, st, isNew = false) {
   const sim = state.networkState;
   const node = sim.nodes[st.node];
   const base = evaluate(ds, { year: state.year, scenario: state.scenario, decisions: [] });
-  const s30 = evaluate(ds, { year: Math.max(2030, state.year), scenario: state.scenario, decisions: state.decisions });
+  const s30 = evaluate(ds, { year: state.year < 2030 ? 2030 : 2035, scenario: state.scenario, decisions: state.decisions });
   const node30 = s30.nodes[st.node];
   // соседи
   const neigh = sim.stations.filter(x => x.id !== st.id).map(x => ({ x, d: Math.hypot(x.x - st.x, x.z - st.z), b: base.byId[x.id] })).sort((a, b) => a.d - b.d).slice(0, 4);
@@ -82,8 +82,8 @@ function passportTab(def, st, isNew = false) {
   return `
     <div class="sec">
       <div class="bigload">
-        <div class="n num">${Math.round(st.load * 100)}<small>%</small></div>
-        <div class="d">${chipStatus(st.status)}<div class="note" style="margin-top:8px">Средняя загрузка ЭЗС · ${state.year} · ${SCENARIOS[state.scenario].short.toLowerCase()} сценарий${Math.abs(dl) > 0.005 ? ` · <span class="${dl < 0 ? 'pos' : 'neg'}">${sgn(dl * 100, 0)} п.п. к «без решений»</span>` : ''}</div></div>
+        <div class="n num">${Math.round(st.rho * 100)}<small>%</small></div>
+        <div class="d">${chipStatus(st.status)}<div class="note" style="margin-top:8px">Пиковая загрузка ЭЗС · средняя за сутки ${pct(st.load)} · ${state.year} · ${SCENARIOS[state.scenario].short.toLowerCase()} сценарий${Math.abs(dl) > 0.005 ? ` · <span class="${dl < 0 ? 'pos' : 'neg'}">${sgn(dl * 100, 0)} п.п. к «без решений»</span>` : ''}</div></div>
       </div>
       ${(builtChips || pending) ? `<div class="rt" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">${builtChips}${pending}</div>` : ''}
     </div>
@@ -91,8 +91,8 @@ function passportTab(def, st, isNew = false) {
       <div><div class="mn">Сессии / мес</div><b class="num">${int(st.served)}<small>спрос ${int(st.D)}</small></b></div>
       <div><div class="mn">Средняя сессия</div><b class="num">${num(st.serviceHours*60)}<small>мин</small></b></div>
       <div><div class="mn">Посты</div><b class="num">${st.posts}<small>× ${MODEL.postKW} кВт</small></b></div>
-      <div><div class="mn">Очередь (пик)</div><b class="num ${riskCls(st.queueRisk)}">${st.queueUnstable ? 'Перегрузка' : (st.waitCapped ? '≥120' : num(st.wait))}<small>${st.queueUnstable ? 'нет устойчивой очереди' : 'мин · приближение'}</small></b></div>
-      <div><div class="mn">Свободная мощность узла</div><b class="num ${gridCls}">${num(Math.max(0, node.H - node.desired), 1)}<small>/ ${num(node.def.nominal, 0)} МВт</small></b></div>
+      <div><div class="mn">Очередь (пик)</div><b class="num ${riskCls(st.queueRisk)}">${queueText(st)}<small>${st.queueUnstable ? 'спрос в пик превышает ёмкость; стационарное ожидание не определено' : 'оценка ожидания в пик'}</small></b></div>
+      <div><div class="mn">Свободная мощность узла</div><b class="num ${gridCls}">${num(Math.max(0, node.H - node.desired), 1)}<small>/ ${num(node.H, 1)} МВт для ЭЗС</small></b></div>
       <div><div class="mn">Ближайшая ЭЗС</div><b class="num">${nearest ? num(nearest.d / 1000, 2) : '—'}<small>км · ${nearest ? nearest.x.id : ''}</small></b></div>
     </div>
     <div class="note" style="margin-top:6px">${TAG.demoScn} спрос рассчитан из географии, время — из средней энергии и предполагаемой мощности; принадлежность и фактическая загрузка адреса не подтверждены.</div>`)}
@@ -100,7 +100,7 @@ function passportTab(def, st, isNew = false) {
     ${sec('Узел подключения', `<div class="grid-card">
         <div style="display:flex;justify-content:space-between;align-items:center"><b class="mono" style="color:var(--cyan)">${node.id.replace('SUB-', 'ПС ')}</b>${node.status === 'constraint' ? '<span class="chip constraint"><i></i>ОГРАНИЧЕНИЕ СЕТИ</span>' : node.status === 'warn' ? '<span class="chip warn"><i></i>нагрев</span>' : '<span class="chip ok"><i></i>норма</span>'}</div>
         <div class="gauge2">${(() => { const max = Math.max(node.H, node.desired, node30.desired, 0.1) * 1.2; return `<div class="trk"></div><div class="fill ${node.status === 'constraint' ? 'bad' : node.status === 'warn' ? 'warn' : ''}" style="width:${(node.desired / max) * 100}%"></div><div class="cap" data-l="доп. ${num(node.H, 2)} МВт" style="left:${(node.H / max) * 100}%"></div><div class="scale"><span>0</span><span>${num(max, 1)} МВт</span></div>`; })()}</div>
-        <div class="note">Текущий пик зарядки ${num(node.desired, 2)} МВт · прогноз ${Math.max(2030, state.year)}: <b style="color:${node30.desired > node30.H ? 'var(--st-high)' : 'var(--paper)'}">${num(node30.desired, 2)} МВт</b> (${sgn((node30.desired / Math.max(0.01, node.desired) - 1) * 100, 0)}%)</div>
+        <div class="note">Пик спроса зарядки ${num(node.desired, 2)} МВт${state.year < 2035 ? ` · оценка ${state.year < 2030 ? 2030 : 2035}: <b style="color:${node30.desired > node30.H ? 'var(--st-high)' : 'var(--paper)'}">${num(node30.desired, 2)} МВт</b> (${sgn((node30.desired / Math.max(0.01, node.desired) - 1) * 100, 0)}%)` : ''}<br>Лимит подключения ЭЗС ${num(node.H, 2)} МВт; условный полный номинал ПС ${num(node.def.nominal, 1)} МВт. Шкала выше относится к зарядке.</div>
         <div class="note scn" style="margin-top:8px">Сценарная модель — не инженерные данные.${node.def.osm.volt ? '' : ''}</div>
         <div style="margin-top:8px;display:flex;gap:8px"><button class="btn sm" data-act="node" data-arg="${node.id}">Паспорт узла</button><button class="btn sm" data-act="layer" data-arg="grid">Смотреть под землёй</button></div>
       </div>`)}
@@ -126,7 +126,7 @@ function optionsTab(def, st) {
         <div class="tt"><span class="cd" style="color:${o.color}">${o.code}</span>${isRec ? '<span class="star">★ В РЕКОМЕНДАЦИИ</span>' : ''}</div>
         <div class="nm">${o.name}</div>
         <div class="ds">${o.short}</div>
-        <div class="mt"><span><small>Вложения</small>${o.capex ? int(o.capex) : '0'} млн</span><span><small>ЧПС баз.</small><b class="${sc.npv >= 0 ? 'pos' : 'neg'}" style="font-weight:500">${sgn(sc.npv, 0)}</b></span><span><small>Ввод</small>${o.lead === 0 ? 'сразу' : '+' + o.lead + ' г.'}</span><span><small>Риск</small>${RISK_RU[p.riskUnder]}</span></div>
+        <div class="mt"><span><small>Вложения</small>${o.capex ? int(o.capex) : '0'} млн</span><span><small>ЧПС ${SCENARIOS[state.scenario].short.toLowerCase()}</small><b class="${sc.npv >= 0 ? 'pos' : 'neg'}" style="font-weight:500">${sgn(sc.npv, 0)}</b></span><span><small>Ввод</small>${o.lead === 0 ? 'сразу' : '+' + o.lead + ' г.'}</span><span><small>Риск</small>${RISK_RU[p.riskUnder]}</span></div>
       </div><i class="ck"></i></button>`;
   }).join('');
   return `
@@ -134,8 +134,9 @@ function optionsTab(def, st) {
       <div class="sec-h" style="margin-bottom:6px"><h3>Пакет решения · ${state.year}</h3>${TAG.scn}</div>
       <div style="min-height:24px">${cur.length ? pkCode(cur) : '<span class="note">Кликайте варианты — сцена меняется сразу. Совместимые варианты объединяются в пакет.</span>'}</div>
       <div style="display:flex;gap:8px;margin-top:10px"><button class="btn primary" data-act="apply-rec">★ Рекомендуемый пакет</button><button class="btn" data-act="reset-pkg" ${cur.length ? '' : 'disabled'}>Сбросить</button></div>
-      <div class="note" style="margin-top:9px">Год решения — ${state.year} (шкала времени). Решение 2027 года влияет на сеть 2030 и 2035.</div>
+      <div class="note" style="margin-top:9px">Год решения — ${state.year} (шкала времени). Горизонт денежных потоков фиксирован: 2026–2035. У поздних решений меньше времени для возврата; ввод после 2035 не даёт выручки в расчёте.</div>
     </div>
+    <div class="sec"><button class="btn block" data-act="investment-case">Пример: спрос +50% · ZIL-01 · 2027</button><div class="note">Тест чувствительности с исходными сметами и тарифом. Параметры спроса будут переключены на ×1,5.</div></div>
     ${cards}
     ${hist.length ? sec('Принятые решения по станции', `<div class="hist">${hist.map(d => `<div class="h"><span class="y">${d.year}</span><span style="flex:1">${pkCode(d.options)}</span><button class="btn sm" data-act="rm-dec" data-arg="${d.station}:${d.year}">×</button></div>`).join('')}</div>`) : ''}`;
 }
@@ -182,7 +183,7 @@ function economicsTab(def, st) {
   const npvBar = (k) => { const v = sc[k].npv; const m = Math.max(60, ...Object.values(sc).map(s => Math.abs(s.npv))); return `<div class="brow ev" style="grid-template-columns:78px 1fr 62px"><span>${SCENARIOS[k].short}</span><div class="bar" style="background:linear-gradient(90deg,transparent 50%,var(--line) 50%)"><i style="left:${v >= 0 ? 50 : 50 + (v / m) * 50}%;width:${Math.abs(v) / m * 50}%;background:${v >= 0 ? '#8b7bff' : '#ff6b78'}"></i></div><span class="num" style="text-align:right">${sgn(v, 0)}</span></div>`; };
   const rows = OPTION_LIST.map(o => { const p = rec.byKey[o.id], s = p.byScenario.base; return `<tr class="click ${cur.length === 1 && cur[0] === o.id ? 'hi' : ''}" data-act="opt-focus" data-arg="${o.id}"><td style="font:500 10px var(--f-mono);letter-spacing:.05em;color:${o.color}">${o.code}</td><td class="r num">${o.capex ? int(o.capex) : 0}</td><td class="r num ${s.npv >= 0 ? 'pos' : 'neg'}">${sgn(s.npv, 0)}</td><td class="r num">${s.irr == null ? '—' : pct(s.irr)}</td><td class="r num">${s.payback ? num(s.payback, 1) + ' г.' : '—'}</td></tr>`; }).join('');
   return `
-    <div class="note warn">ДЕМО-МОДЕЛЬ · сценарное допущение. Значения не являются данными РСЗС.</div>
+    <div class="note warn">ДЕМО-МОДЕЛЬ · сценарное допущение. Значения не являются данными РСЗС. Горизонт оценки — 2026–2035, дисконтирование к началу 2026. Более поздний ввод оставляет меньше лет для возврата.</div>
     ${sec(cur.length ? 'Выбранный пакет · ' + pkText(cur) : 'Рекомендуемый пакет · ' + pkText(rec.best.options), `<div class="kv">
       <div><div class="mn">Вложения</div><b class="num">${int(b.capex)}<small>млн ₽</small></b></div>
       <div><div class="mn">Эксплуатация в год</div><b class="num">${num(b.opex2030 ?? 0, 1)}<small>млн ₽</small></b></div>
@@ -203,7 +204,8 @@ function economicsTab(def, st) {
 function nodePanel() {
   const sim = state.networkState, id = state.selectedNode, nd = ds.nodeById[id], n = sim.nodes[id];
   const data = YEARS.map(y => { const s = evaluate(ds, { year: y, scenario: state.scenario, decisions: state.decisions }); const nn = s.nodes[id]; return { year: y, H: nn.H, desired: nn.desired, cur: y === state.year }; });
-  const s30 = data.find(d => d.year === 2030);
+  const forecastYear = state.year < 2030 ? 2030 : 2035;
+  const s30 = data.find(d => d.year === forecastYear);
   const reserve = n.H - n.desired;
   const osm = nd.osm.name || nd.osm.volt || nd.osm.kind;
   const status = n.status === 'constraint' ? '<span class="chip constraint"><i></i>ОГРАНИЧЕНИЕ СЕТИ</span>' : n.status === 'warn' ? '<span class="chip warn"><i></i>нагрев узла</span>' : '<span class="chip ok"><i></i>в норме</span>';
@@ -214,7 +216,7 @@ function nodePanel() {
         <div><div class="mn">Доступная мощность</div><b class="num">${num(n.H, 2)}<small>МВт</small></b></div>
         <div><div class="mn">Текущая нагрузка зарядки</div><b class="num">${num(n.desired, 2)}<small>МВт</small></b></div>
         <div><div class="mn">Резерв</div><b class="num ${reserve < 0 ? 'bad' : reserve < 0.3 ? 'warn' : 'ok'}">${num(reserve, 2)}<small>МВт</small></b></div>
-        <div><div class="mn">Прогноз нагрузки 2030</div><b class="num ${s30.desired > s30.H ? 'bad' : ''}">${num(s30.desired, 2)}<small>МВт · ${sgn((s30.desired / Math.max(0.01, n.desired) - 1) * 100, 0)}%</small></b></div>
+        ${state.year < 2035 ? `<div><div class="mn">Оценка нагрузки ${forecastYear}</div><b class="num ${s30.desired > s30.H ? 'bad' : ''}">${num(s30.desired, 2)}<small>МВт · ${sgn((s30.desired / Math.max(0.01, n.desired) - 1) * 100, 0)}%</small></b></div>` : ''}
         <div class="wide"><div class="mn">Номинал узла (условный)</div><b class="num">${num(nd.nominal, 1)}<small>МВт · из них EV-допустимо ${num(nd.headroom, 1)} в базовом состоянии</small></b></div></div>`, TAG.scn)}
       ${sec('Допустимая и запрашиваемая мощность', nodeBars({ data, max: Math.max(...data.map(d => Math.max(d.H, d.desired))) * 1.25 }) + '<div class="legend"><span style="--c:#59d8e6"><i class="dash"></i>допустимая мощность зарядки</span><span style="--c:#ffb83d"><i></i>плановая нагрузка зарядки</span></div>')}
       ${sec('Питает станции', `<table class="tbl"><tbody>${n.stations.map(sid => { const s = sim.byId[sid]; return `<tr class="click" data-act="station" data-arg="${sid}"><td>${sid}</td><td class="r num">${s.posts} постов</td><td class="r num">${pct(s.load)}</td></tr>`; }).join('')}</tbody></table>`)}
@@ -269,7 +271,7 @@ function flowPanel() {
 /* =================== ОБЗОР КЛАСТЕРА =================== */
 function clusterPanel() {
   const sim = state.networkState, T = sim.totals;
-  const list = sim.stations.filter(s => !s.isNew).sort((a, b) => (b.rho + (b.status === 'constraint' ? 1 : 0)) - (a.rho + (a.status === 'constraint' ? 1 : 0)));
+  const list = sim.stations.filter(s => !s.isNew).sort(attentionCompare);
   return `${head(`<span class="tag">РАЙОН</span>${TAG.osm}${TAG.demoScn}`, 'Кластер ЗИЛ · Автозаводская', 'Где, когда и нужно ли инвестировать?')}
     <div class="pbody">
       <div class="kv">
@@ -278,7 +280,9 @@ function clusterPanel() {
         <div><div class="mn">Доступность</div><b class="num ${T.availability < 0.9 ? 'bad' : ''}">${pct(T.availability)}</b></div>
         <div><div class="mn">Узлы в ограничении</div><b class="num ${T.constrainedNodes ? 'bad' : 'ok'}">${T.constrainedNodes}<small>из ${ds.nodes.length}</small></b></div>
       </div>
-      ${sec('Приоритет внимания', `<table class="tbl"><thead><tr><th>ЭЗС</th><th class="r">Загрузка</th><th class="r">Очередь</th><th class="r">Сеть</th></tr></thead><tbody>${list.map(s => `<tr class="click" data-act="station" data-arg="${s.id}"><td><span class="chip ${s.status}" style="border:0;padding:0"><i></i></span>&nbsp;<b>${s.id}</b></td><td class="r num">${pct(s.load)}</td><td class="r num ${riskCls(s.queueRisk)}">${s.queueUnstable ? 'Перегрузка' : s.waitCapped ? '≥120 мин' : num(s.wait) + ' мин'}</td><td class="r"><span class="chip ${sim.nodes[s.node].status === 'constraint' ? 'constraint' : sim.nodes[s.node].status === 'warn' ? 'warn' : 'ok'}" style="border:0;padding:0"><i></i></span></td></tr>`).join('')}</tbody></table>`)}
+      ${sec('Приоритет внимания', `<table class="tbl"><thead><tr><th>ЭЗС</th><th class="r">Пик</th><th class="r">Очередь</th><th class="r">Сеть</th></tr></thead><tbody>${list.map(s => `<tr class="click" data-act="station" data-arg="${s.id}"><td><span class="chip ${s.status}" style="border:0;padding:0"><i></i></span>&nbsp;<b>${s.id}</b></td><td class="r num">${pct(s.rho)}</td><td class="r num ${riskCls(s.queueRisk)}">${queueText(s)}</td><td class="r"><span class="chip ${sim.nodes[s.node].status === 'constraint' ? 'constraint' : sim.nodes[s.node].status === 'warn' ? 'warn' : 'ok'}" style="border:0;padding:0"><i></i></span></td></tr>`).join('')}</tbody></table>`)}
+      <div class="note">Приоритет: сначала перегрузка в пик, затем минуты ожидания и пиковая загрузка. При перегрузке конечное ожидание не определено.</div>
+      ${!T.constrainedNodes ? '<div class="note scn" style="margin-top:12px">Ограничений не выявлено при текущих демонстрационных лимитах узлов. Очередь на постах возникает раньше дефицита мощности. Лимиты требуют технических условий сетевой организации.</div>' : ''}
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
         <button class="btn primary block" data-act="station" data-arg="ZIL-01">Разобрать станцию ZIL-01 →</button>
         <button class="btn block" data-act="layer" data-arg="demand">Показать транспортный спрос</button>

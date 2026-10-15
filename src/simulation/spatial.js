@@ -1,5 +1,5 @@
 // Хафф: спрос территории распределяется между сетью, конкурентами и внешней альтернативой.
-import { RESEARCH as R } from '../data/research-bundle.js';
+import { RESEARCH as R } from '../data/research-core.js';
 const memo = new Map();
 const SEGMENTS = { private: 'private_ev', corporate: 'corporate', transit: 'transit' };
 export function allocateSpatial(stations) {

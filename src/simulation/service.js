@@ -1,7 +1,7 @@
 import { evaluate } from './engine.js';
 import { economics } from './economics.js';
 import { MODEL, OPTIONS, SCENARIOS, YEAR_MIN, YEAR_MAX } from './params.js';
-import { RESEARCH } from '../data/research-bundle.js';
+import { RESEARCH } from '../data/research-core.js';
 
 const check = (ok, message) => { if (!ok) throw new Error(message); };
 const number = (v, min, max) => Number.isFinite(v) && v >= min && v <= max;

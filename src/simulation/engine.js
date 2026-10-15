@@ -254,7 +254,8 @@ export function evaluate(ds, { year, scenario = 'base', decisions = [] }) {
   }
   for (const s of stations) {
     const n = nodes[s.node]; s.gridUtil = n.util;
-    s.status = n.status === 'constraint' ? 'constraint' : s.load >= MODEL.loadHigh ? 'high' : s.load >= MODEL.loadMid ? 'mid' : 'low';
+    const load = Math.max(s.load, s.rho);
+    s.status = n.status === 'constraint' ? 'constraint' : load >= MODEL.loadHigh ? 'high' : load >= MODEL.loadMid ? 'mid' : 'low';
   }
   const demand = sum(stations.map(s => s.D)), served = sum(stations.map(s => s.served));
   const posts = sum(stations.map(s => s.posts)), cap = sum(stations.map(s => s.capPosts));

@@ -1,7 +1,8 @@
 // Рабочие листы: сценарии, план развития, паспорт расчёта, сравнение подходов, данные и допущения.
-import { state } from '../state.js';
+import { state, setState } from '../state.js';
+import { syncSheetModal } from './modal.js';
 import { passportSheet } from './audit.js';
-import { researchSheet } from './research.js';
+import { researchSheet, registryReady, loadRegistry } from './research.js';
 import { dataset as ds } from '../data/dataset.js';
 import { evaluate } from '../simulation/engine.js';
 import { seriesCached, marginPerSession } from '../simulation/economics.js';
@@ -12,15 +13,28 @@ import { MODEL, OPTIONS, SCENARIOS, ALL_YEARS, YEARS, growthAt, assumptionRows, 
 import { esc, num, int, pct, mln, sgn, TAG, PROV, pkCode, pkText, lineChart, chipStatus, ICONS, riskCls, RISK_RU } from './format.js';
 
 const $ = (s) => document.querySelector(s);
+let registryLoading = false;
 let compareTimer = null, compareCache = {}, compareRun = 0;
 
 export function renderSheet() {
   const el = $('#sheet');
-  if (state.view === 'map') { el.hidden = true; el.innerHTML = ''; stopCompare(); return; }
+  const close = () => setState({ view: 'map' });
+  if (state.view === 'map') { el.hidden = true; el.innerHTML = ''; stopCompare(); syncSheetModal(el, close); return; }
   el.hidden = false;
+  const scroll = el.scrollTop;
+  const focused = el.contains(document.activeElement) ? document.activeElement : null;
+  const focusId = focused?.id, act = focused?.dataset.act, arg = focused?.dataset.arg;
   const v = state.view;
+  if (v === 'research' && !registryReady() && !registryLoading) {
+    registryLoading = true;
+    loadRegistry().then(() => { if (state.view === 'research') renderSheet(); }).catch(() => {}).finally(() => { registryLoading = false; });
+  }
   const body = v === 'research' ? researchSheet() : v === 'scenarios' ? scenariosSheet() : v === 'plan' ? planSheet() : v === 'passport' ? passportSheet() : v === 'compare' ? compareSheet() : dataSheet();
   el.innerHTML = `<div class="sheet-in">${body}</div><button class="btn sheet-x" data-act="view" data-arg="map">${ICONS.x}&nbsp; К карте</button>`;
+  syncSheetModal(el, close);
+  el.scrollTop = scroll;
+  const replacement = [...el.querySelectorAll('[id], [data-act]')].find(n => focusId ? n.id === focusId : act && n.dataset.act === act && n.dataset.arg === arg);
+  replacement?.focus({preventScroll: true});
   if (v === 'compare') startCompare();
 }
 const H = (kicker, title, text, right = '') => `<div class="sheet-h"><div><div class="mn" style="color:#c6bdff">${kicker}</div><h1>${title}</h1><p>${text}</p></div><div>${right}</div></div>`;

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://ev-option-grid-studio.vercel.app/sitemap.xml

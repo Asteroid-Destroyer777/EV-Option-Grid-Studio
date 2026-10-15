@@ -1,7 +1,7 @@
 // Демонстрационный датасет: станции, узлы сети, площадки, потоки спроса.
 // Позиции ЭЗС-ориентиров — по адресам, заданным командой (геокодированы OSM Nominatim). Загрузка/сессии — DEMO SCENARIO.
 // Узлы сети привязаны к реальным объектам power=substation в OSM; их мощности и резервы — СЦЕНАРНЫЕ допущения.
-import { RESEARCH } from './research-bundle.js';
+import { RESEARCH } from './research-core.js';
 import { geo, project, polyCentroid } from './geo.js';
 
 export const STATION_DEFS = [

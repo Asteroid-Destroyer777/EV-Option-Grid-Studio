@@ -1,5 +1,21 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>2D полигон · EV-Option Grid</title><link href="./fonts/fonts.css" rel="stylesheet"/><link href="./vendor/leaflet/leaflet.css" rel="stylesheet"/><link href="./src/district/style.css" rel="stylesheet"/><link href="./assets/mark.svg" rel="icon"/><link href="./src/styles/experience.css" rel="stylesheet"/><link href="./src/district/studio.css" rel="stylesheet"/><script src="./src/experience.js" type="module"></script><link href="./src/district/ranking.css" rel="stylesheet"/><link href="./src/district/calculation-motion.css" rel="stylesheet"/><link href="./src/district/ambient.css" rel="stylesheet"/><link rel="stylesheet" href="./src/district/usability.css"/></head>
+<html lang="ru"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>2D полигон · EV-Option Grid</title><link href="./fonts/fonts.css" rel="stylesheet"/><link href="./vendor/leaflet/leaflet.css" rel="stylesheet"/><link href="./src/district/style.css" rel="stylesheet"/><link href="./assets/mark.svg" rel="icon"/><link href="./src/styles/experience.css" rel="stylesheet"/><link href="./src/district/studio.css" rel="stylesheet"/><script src="./src/experience.js" type="module"></script><link href="./src/district/ranking.css" rel="stylesheet"/><link href="./src/district/calculation-motion.css" rel="stylesheet"/><link href="./src/district/ambient.css" rel="stylesheet"/><link rel="stylesheet" href="./src/district/usability.css"/>
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="EV-Option Grid">
+<meta property="og:title" content="2D · Район — EV-Option Grid">
+<meta property="og:description" content="Задайте границы района и сравните площадки для новой зарядной станции.">
+<meta property="og:url" content="https://ev-option-grid-studio.vercel.app/district.html">
+<meta property="og:image" content="https://ev-option-grid-studio.vercel.app/assets/og-polygon.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Цифровой двойник ЗИЛ — EV-Option Grid">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="2D · Район — EV-Option Grid">
+<meta name="twitter:description" content="Задайте границы района и сравните площадки для новой зарядной станции.">
+<meta name="twitter:image" content="https://ev-option-grid-studio.vercel.app/assets/og-polygon.jpg">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+</head>
 <body><div class="district-ambient" aria-hidden="true"><div class="ambient-ball"><i></i></div><div class="ambient-ball"><i></i></div><div class="ambient-ball"><i></i></div><div class="ambient-ball"><i></i></div><div class="ambient-ball"><i></i></div></div><header><a class="logo" href="./index.html"><b>EV—OPTION GRID</b><small>Аналитика · прогноз · развитие</small></a><nav><a href="./index.html">Главная</a><a class="active" href="./district.html">2D полигон</a><a href="./polygon3d.html">3D полигон</a></nav></header>
 <main><div class="page-title" data-reveal=""><div><span class="eyebrow">2D · анализ территории</span><h1>Где разместить<br/>новую ЭЗС?</h1><p>Три шага: выберите район, задайте единый сценарий и сравните площадки. Все исходные данные и расчёты можно проверить.</p></div><div class="steps"><span class="on">1 · Территория</span><span>2 · Параметры</span><span>3 · Результат</span></div></div>
 <section class="demo-entry"><div><span class="eyebrow">Проверка решения без внешних серверов</span><h2>От контура — к лучшим площадкам</h2><p>Тестовый район ЗИЛ: архивная карта и существующие ЭЗС, заданный тестовый спрос. Рейтинг рассчитывает рабочая модель.</p></div><button type="button" id="demo-start">Открыть тестовый район →</button><a href="./data/district-demo.json" download>Скачать входные параметры</a></section>

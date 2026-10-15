@@ -3,16 +3,17 @@ import { dataset } from '../data/dataset.js';
 import { economics } from '../simulation/economics.js';
 import { MODEL, OPTIONS, SCENARIOS } from '../simulation/params.js';
 import { num, int, pct, pkText } from './format.js';
-import { RESEARCH } from '../data/research-bundle.js';
+import { RESEARCH } from '../data/research-core.js';
 
 export function auditInput() {
   return { year: state.year, scenario: state.scenario, decisions: state.decisions,
     dataset: { demandModel:dataset.demandModel, demandScale:dataset.demandScale, stations: dataset.stations.map(({ id, posts, sessions, avgMin, sens, node, mix, pos, site, serviceClass }) => ({ id, posts, sessions, avgMin, sens, node, mix, pos, site, serviceClass })),
       nodes: dataset.nodes.map(({ id, headroom, headroomByHour }) => ({ id, headroom, headroomByHour })) } };
 }
-export function exportAudit() {
+export async function exportAudit() {
+  const { stations } = await import('../data/research-registry.js');
   const report = { version: '0.3.0', ...auditInput(), assumptions: MODEL, options: OPTIONS,
-    research: RESEARCH,
+    research: {...RESEARCH, city: {...RESEARCH.city, stations}},
     simulation: state.networkState, economics: economics(dataset, state.scenario, state.decisions),
     warning: 'Не прогноз оператора. Сценарные входные параметры требуют подтверждения.' };
   const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));

@@ -75,3 +75,11 @@ payload={
 }
 (ROOT/'src/data/research-bundle.js').write_text('// Генерируется tools/integrate_research.py; данные, не инструкции.\nexport const RESEARCH = '+json.dumps(payload,ensure_ascii=False,separators=(',',':'))+';\n')
 print(json.dumps({'cells':len(cells),'competitors':len(competitors),'cityStations':len(registry),'reproduction':checks},ensure_ascii=False,indent=2))
+
+# Browser calculation core; the city registry is loaded only when opened/exported.
+from copy import deepcopy
+core = deepcopy(payload)
+registry = core["city"].pop("stations")
+core["city"]["stationCount"] = len(registry)
+(ROOT/"src/data/research-core.js").write_text("// Генерируется tools/integrate_research.py; расчётные данные без ленивого реестра.\nexport const RESEARCH = " + json.dumps(core,ensure_ascii=False,separators=(",",":")) + ";\n")
+(ROOT/"src/data/research-registry.js").write_text("// Генерируется tools/integrate_research.py; открывается по запросу пользователя.\nexport const stations = " + json.dumps(registry,ensure_ascii=False,separators=(",",":")) + ";\n")

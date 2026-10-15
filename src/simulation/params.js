@@ -2,7 +2,7 @@
 // Каждое допущение помечено происхождением: 'scenario' — сценарное допущение, 'demo' — демонстрационное значение прототип,
 // 'osm' — открытые данные OpenStreetMap, 'team' — задано командой проекта, 'rszs' — публично заявлено в описании задачи.
 
-import { RESEARCH } from '../data/research-bundle.js';
+import { RESEARCH } from '../data/research-core.js';
 
 export const YEARS = [2026, 2027, 2030, 2035];
 export const YEAR_MIN = 2026;
