@@ -1,10 +1,12 @@
+import {renderRatio,createRenderBudget} from './render-budget.js';
 // Рендерер, камера, свет, небо.
 import * as THREE from 'three';
 import { U, makeSkyMaterial } from './materials.js';
 
 export function createWorld(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(max-width: 700px)').matches ? 1.35 : 1.75));
+  const budget=createRenderBudget(1.5);
+  let firstSize=true;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setClearColor(U.uFogColor.value, 1);
 
@@ -36,6 +38,10 @@ export function createWorld(canvas) {
   function resize() {
     const r = canvas.parentElement.getBoundingClientRect();
     W = Math.max(2, Math.round(r.width)); H = Math.max(2, Math.round(r.height));
+    const cap=renderRatio({width:W,height:H,dpr:window.devicePixelRatio||1,mobile:matchMedia('(max-width: 700px)').matches});
+    const ratio=firstSize?(firstSize=false,cap):Math.min(budget.ratio,cap);
+    budget.reset(cap);
+    if(renderer.getPixelRatio()!==ratio)renderer.setPixelRatio(ratio);
     renderer.setSize(W, H, false);
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     camera.aspect = W / H;
@@ -47,6 +53,7 @@ export function createWorld(canvas) {
 
   return {
     renderer, scene, camera, sky, hemi, sun, resize,
+    sampleFrame(ms,now){const ratio=budget.sample(ms,now);if(ratio!=null&&Math.abs(renderer.getPixelRatio()-ratio)>.04){renderer.setPixelRatio(ratio);renderer.setSize(W,H,false);}},
     get size() { return { w: W, h: H }; },
     /** Сдвиг центра проекции (px, вправо>0) — чтобы фокус не прятался под боковыми панелями. */
     setViewShift(px) { shiftX = px; applyViewOffset(); camera.updateProjectionMatrix(); },

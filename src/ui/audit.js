@@ -1,3 +1,4 @@
+import {simulationDataset} from '../simulation/input.js';
 import { state } from '../state.js';
 import { dataset } from '../data/dataset.js';
 import { economics } from '../simulation/economics.js';
@@ -7,8 +8,7 @@ import { RESEARCH } from '../data/research-core.js';
 
 export function auditInput() {
   return { year: state.year, scenario: state.scenario, decisions: state.decisions,
-    dataset: { demandModel:dataset.demandModel, demandScale:dataset.demandScale, attractivenessExponent:dataset.attractivenessExponent, stations: dataset.stations.map(({ id, posts, sessions, avgMin, sens, node, mix, pos, site, serviceClass }) => ({ id, posts, sessions, avgMin, sens, node, mix, pos, site, serviceClass })),
-      nodes: dataset.nodes.map(({ id, headroom, headroomByHour }) => ({ id, headroom, headroomByHour })) } };
+    dataset: simulationDataset(dataset) };
 }
 export async function exportAudit() {
   const { stations } = await import('../data/research-registry.js');

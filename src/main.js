@@ -1,3 +1,4 @@
+import {simulationDataset} from './simulation/input.js';
 // План зарядной сети — точка входа: данные → 3D-двойник → состояние → интерфейс → вводная демонстрация.
 import {initAssistant} from './assistant/ui.js';
 import * as THREE from 'three';
@@ -7,7 +8,7 @@ import { initDataset, dataset } from './data/dataset.js';
 import { createTwin } from './scene/twin.js';
 import { state, setState, subscribe, flush } from './state.js';
 import { evaluate } from './simulation/engine.js';
-import { recommend } from './simulation/recommend.js';
+import { seedRecommendation } from './simulation/recommend.js';
 import * as A from './actions.js';
 import { initUI, updateUI, toast, renderGuide } from './ui/index.js';
 import { WalkController } from './controls/walk.js';
@@ -106,15 +107,28 @@ async function boot() {
   updateUI(new Set(['year', 'scenario', 'decisions', 'activeLayer', 'view', 'selectedStation', 'panelTab', 'networkState', 'guideOpen']));
   updateShift();
   if (state.selectedStation) A.flyToStation(state.selectedStation);
-  // прогрев рекомендаций (чтобы первый клик по ZIL-01 был мгновенным)
-  setTimeout(() => { try { recommend(dataset, { station: 'ZIL-01', year: 2026, baseline: [], scenario: 'base' }); recommend(dataset, { station: 'ZIL-01', year: 2027, baseline: [], scenario: 'base' }); } catch (e) { console.warn(e); } }, 400);
+  // Warm the first station without blocking the camera or initial interactions.
+  let warmWorker;
+  try {
+    warmWorker=new Worker(new URL('./simulation/recommend-worker.js',import.meta.url),{type:'module'});
+    const timer=setTimeout(()=>warmWorker.terminate(),60000);
+    warmWorker.onmessage=({data})=>{
+      if(data.result)seedRecommendation(dataset,data.query,data.key,data.result);
+      if(data.done){clearTimeout(timer);warmWorker.terminate();}
+    };
+    warmWorker.onerror=()=>{clearTimeout(timer);warmWorker.terminate();};
+    warmWorker.postMessage({dataset:simulationDataset(dataset)});
+    window.addEventListener('pagehide',()=>{clearTimeout(timer);warmWorker.terminate();},{once:true});
+  }catch{ /* Lazy calculation remains available when Workers are unavailable. */ }
+
 
   window.__ev = { twin, ds: dataset, state, setState, A, walk, demo, evaluate };
 
   let last = performance.now(), depthOn = false;
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const frameMS=now-last,dt = Math.min(0.05, frameMS / 1000); last = now;
     if (document.hidden || (state.view !== 'map' && !state.walkMode && !state.demo)) { requestAnimationFrame(frame); return; }
+    twin.world.sampleFrame(frameMS,now);
     walk.update(dt);
     twin.frame(dt, walk);
     const under = twin.camera.position.y < -1;

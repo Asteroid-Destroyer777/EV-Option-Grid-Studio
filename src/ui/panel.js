@@ -16,9 +16,9 @@ export function renderPanel() {
   const p = $('#panel');
   let restore = $('#restore-panel');
   if (!restore) { restore = document.createElement('button'); restore.id='restore-panel'; restore.className='btn'; restore.dataset.act='panel-open'; restore.textContent='Показать обзор района'; $('#ui').appendChild(restore); }
-  restore.hidden = state.view !== 'map' || !state.panelHidden || state.walkMode;
+  restore.hidden = state.demo || state.view !== 'map' || !state.panelHidden || state.walkMode;
   const anySel = state.selectedStation || state.selectedNode || state.selectedFlow;
-  if (state.panelHidden || state.view !== 'map' || (state.walkMode && !anySel)) { p.hidden = true; return; }
+  if (state.demo || state.panelHidden || state.view !== 'map' || (state.walkMode && !anySel)) { p.hidden = true; return; }
   p.hidden = false; p.classList.add('pnl');
   const key = `${state.selectedStation}|${state.selectedNode}|${state.selectedFlow}|${state.panelTab}`;
   const body = p.querySelector('.pbody'); const scroll = body && key === lastKey ? body.scrollTop : 0;
