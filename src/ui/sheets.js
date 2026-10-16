@@ -17,16 +17,20 @@ import { esc, num, int, pct, mln, sgn, TAG, PROV, pkCode, pkText, lineChart, chi
 const $ = (s) => document.querySelector(s);
 let registryLoading = false;
 let compareTimer = null, compareCache = {}, compareRun = 0;
+let renderedView = 'map';
 
 export function renderSheet() {
   const el = $('#sheet');
   const close = () => setState({ view: 'map' });
-  if (state.view === 'map') { el.hidden = true; el.innerHTML = ''; stopCompare(); syncSheetModal(el, close); return; }
+  if (state.view === 'map') { renderedView = 'map'; el.hidden = true; el.innerHTML = ''; stopCompare(); syncSheetModal(el, close); return; }
   el.hidden = false;
-  const scroll = el.scrollTop;
-  const focused = el.contains(document.activeElement) ? document.activeElement : null;
+  const sameView = renderedView === state.view;
+  const scroll = sameView ? el.scrollTop : 0;
+  const focused = sameView && el.contains(document.activeElement) ? document.activeElement : null;
   const focusId = focused?.id, act = focused?.dataset.act, arg = focused?.dataset.arg;
   const v = state.view;
+  renderedView = v;
+  if (v !== 'compare') stopCompare();
   if(v==='research'&&!analysisReady('sensitivity')) setTimeout(()=>{if(state.view==='research'&&!analysisReady('sensitivity'))requestAnalysis('sensitivity');},0);
   if (v === 'research' && !registryReady() && !registryLoading) {
     registryLoading = true;

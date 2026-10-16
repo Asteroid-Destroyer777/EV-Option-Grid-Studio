@@ -5,7 +5,7 @@
 .tl-y:focus-visible{outline:3px dashed #fff;outline-offset:5px;border-radius:4px}
 .tl-y[aria-pressed="true"] b{color:#c9d1ff;text-decoration:underline;text-underline-offset:5px}
 #sheet:focus{outline:none}
-#sheet[aria-modal="true"]{z-index:80}
+#sheet:not([hidden]){z-index:80}
 .seg button,.ph .x,.tabs button,.sheet-x,.btn{min-height:44px}
 .ph .x{width:44px}
 .bigload .d{min-width:0}
@@ -60,7 +60,8 @@
   .dk .kk{display:none}
   .dk svg{width:16px;height:16px}
   #dock .dk.walk{display:none}
-  #sheet{left:0;top:0;padding:24px 16px 30px}
+  #sheet{left:0;top:0;padding:72px 16px 30px}
+  #app:not([data-view="map"]) #nav-toggle{z-index:85}
   .sheet-in{overflow-x:auto}
   .sheet-x{position:sticky;bottom:0;margin:24px 0 0 auto;background:#263444;min-width:120px}
   #beaver-launch{top:8px;bottom:auto;right:12px;min-height:44px;padding:4px 8px 4px 4px}
