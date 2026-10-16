@@ -1,3 +1,4 @@
+import {placeLabel} from './label-layout.js';
 // HTML-подписи, привязанные к 3D-точкам (станции, узлы, районы, ориентиры).
 import * as THREE from 'three';
 
@@ -35,6 +36,7 @@ export class Labels {
     if ((this._bk++ % 20) === 0) this.refreshBlockers();
     const cam = this.camera, { w, h } = this.world.size;
     const shift = extra.shift || 0;
+    const occupied=[];
     for (const it of this.items.values()) {
       const p = typeof it.pos === 'function' ? it.pos() : it.pos;
       if (!p) { it.el.style.display = 'none'; continue; }
@@ -43,9 +45,15 @@ export class Labels {
       if (d < it.min || d > it.max) { it.el.style.display = 'none'; continue; }
       this.v.copy(p).project(cam);
       if (this.v.z > 1 || this.v.z < -1 || Math.abs(this.v.x) > 1.05 || Math.abs(this.v.y) > 1.1) { it.el.style.display = 'none'; continue; }
-      const x = (this.v.x * 0.5 + 0.5) * w + shift, y = (-this.v.y * 0.5 + 0.5) * h;
-      if (this.blockers.some(r => x > r.left - 6 && x < r.right + 6 && y > r.top && y < r.bottom + 30)) { it.el.style.display = 'none'; continue; }
+      let x = (this.v.x * 0.5 + 0.5) * w + shift, y = (-this.v.y * 0.5 + 0.5) * h;
+      const pod=it.el.dataset.id.startsWith('pod-');
+      if (!pod && this.blockers.some(r => x > r.left - 6 && x < r.right + 6 && y > r.top && y < r.bottom + 30)) { it.el.style.display = 'none'; continue; }
       it.el.style.display = '';
+      if(pod){
+        const placed=placeLabel(x,y,it.el.offsetWidth||64,it.el.offsetHeight||46,{w,h},occupied,this.blockers);
+        if(!placed){it.el.style.display='none';continue;}
+        x=placed.x;y=placed.y;occupied.push(placed.rect);
+      }
       it.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) translate(-50%,-100%)`;
       const fade = 1 - Math.max(0, Math.min(1, (d - it.max * 0.75) / (it.max * 0.25 + 1)));
       it.el.style.opacity = fade.toFixed(2);

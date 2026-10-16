@@ -115,8 +115,8 @@ export class StationView {
     const shown = Math.min(MAX_SHOWN_POSTS, Math.max(2, this.postsShown));
     const busy = Math.min(shown, Math.round(Math.min(1, st.served / Math.max(1, st.capPosts)) * shown + 0.001));
     for (let i = 0; i < busy; i++) put(postX(i), -1.05, Math.PI / 2, pick());
-    const qn = Math.min(9, st.queueCars);
-    for (let i = 0; i < qn; i++) put(22 - i * 5.5, 10.6, Math.PI, pick());
+    // The primary hourly balance rejects excess demand. Erlang C remains a
+    // separate diagnostic, so its hypothetical waiting cars are not drawn.
     this.cars.count = n;
     this.cars.instanceMatrix.needsUpdate = true;
     if (this.cars.instanceColor) this.cars.instanceColor.needsUpdate = true;

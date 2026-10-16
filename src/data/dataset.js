@@ -6,23 +6,17 @@ import { geo, project, polyCentroid } from './geo.js';
 
 export const STATION_DEFS = [
   { id: 'ZIL-01', address: '1-й Автозаводский проезд, 5', lat: 55.70483, lon: 37.65729, zone: 'Автозаводская · ЗИЛ',
-    posts: 8, sessions: 8420, avgMin: 48, sens: 1.0, node: 'SUB-ZIL-01', hero: true,
-    mix: { private_ev: 0.40, taxi: 0.32, corporate: 0.14, ebus: 0.04, municipal: 0.10 } },
+    posts: 8, node: 'SUB-ZIL-01', hero: true },
   { id: 'ZIL-02', address: 'Автозаводская улица, 7', lat: 55.70787, lon: 37.66034, zone: 'Автозаводская',
-    posts: 6, sessions: 3650, avgMin: 44, sens: 0.85, node: 'SUB-ZIL-02',
-    mix: { private_ev: 0.46, taxi: 0.26, corporate: 0.18, ebus: 0.02, municipal: 0.08 } },
+    posts: 6, node: 'SUB-ZIL-02' },
   { id: 'ZIL-03', address: 'Автозаводская улица, 5', lat: 55.70886, lon: 37.66273, zone: 'Автозаводская',
-    posts: 4, sessions: 1350, avgMin: 41, sens: 0.95, node: 'SUB-ZIL-02',
-    mix: { private_ev: 0.52, taxi: 0.16, corporate: 0.24, ebus: 0.0, municipal: 0.08 } },
+    posts: 4, node: 'SUB-ZIL-02' },
   { id: 'ZIL-04', address: '1-й Кожуховский проезд', lat: 55.70686, lon: 37.66297, zone: 'Кожухово',
-    posts: 6, sessions: 4650, avgMin: 46, sens: 0.75, node: 'SUB-ZIL-02',
-    mix: { private_ev: 0.44, taxi: 0.28, corporate: 0.10, ebus: 0.10, municipal: 0.08 } },
+    posts: 6, node: 'SUB-ZIL-02' },
   { id: 'ZIL-05', address: 'Восточная улица', lat: 55.71727, lon: 37.66271, zone: 'Восточная',
-    posts: 4, sessions: 3300, avgMin: 43, sens: 0.70, node: 'SUB-ZIL-03',
-    mix: { private_ev: 0.50, taxi: 0.22, corporate: 0.14, ebus: 0.06, municipal: 0.08 } },
+    posts: 4, node: 'SUB-ZIL-03' },
   { id: 'ZIL-06', address: 'Мытная улица', lat: 55.72312, lon: 37.61682, zone: 'Замоскворечье (вне ядра)',
-    posts: 6, sessions: 3100, avgMin: 45, sens: 0.60, node: 'SUB-ZIL-04',
-    mix: { private_ev: 0.48, taxi: 0.24, corporate: 0.16, ebus: 0.04, municipal: 0.08 } },
+    posts: 6, node: 'SUB-ZIL-04' },
 ];
 
 // Значения спроса пересчитаны из исходной геометрии по алгоритму исследования.
@@ -52,14 +46,13 @@ export const FLOW_DEFS = [
   { id: 'F-01', type: 'private_ev', to: 'ZIL-01', w: 1.00, growth: 1.30, from: { land: 'Комплексный редевелопмент промзоны ЗИЛ' }, label: 'Кварталы редевелопмента ЗИЛ → ЭЗС' },
   { id: 'F-02', type: 'private_ev', to: 'ZIL-01', w: 0.60, growth: 1.00, from: { land: 'Жилой комплекс «Резиденции композиторов»' }, label: 'Жилые кварталы → ЭЗС' },
   { id: 'F-03', type: 'corporate', to: 'ZIL-01', w: 0.55, growth: 1.05, from: { land: 'Деловой квартал «Симоновский»' }, label: 'Деловой квартал → ЭЗС' },
-  { id: 'F-04', type: 'taxi', to: 'ZIL-01', w: 0.90, growth: 1.10, from: { bridge: 'Эстакада Автозаводская—ТТК' }, label: 'ТТК / магистраль → зарядный хаб такси' },
-  { id: 'F-05', type: 'taxi', to: 'ZIL-02', w: 0.50, growth: 1.00, from: { station: 'Автозаводская' }, label: 'Метро «Автозаводская» → ЭЗС' },
-  { id: 'F-06', type: 'ebus', to: 'ZIL-04', w: 0.35, growth: 1.20, from: { land: 'Филиал Южный ГУП «Мосгортранс»' }, label: 'Электробусный парк → зарядная инфраструктура' },
-  { id: 'F-07', type: 'municipal', to: 'ZIL-01', w: 0.30, growth: 1.00, from: { land: 'Снегоплавильный пункт' }, label: 'База коммунальной техники → ЭЗС' },
+  { id: 'F-04', type: 'transit', to: 'ZIL-01', w: 0.90, growth: 1.10, from: { bridge: 'Эстакада Автозаводская—ТТК' }, label: 'ТТК / магистраль → ЭЗС · транзит' },
+  { id: 'F-05', type: 'transit', to: 'ZIL-02', w: 0.50, growth: 1.00, from: { station: 'Автозаводская' }, label: 'Метро «Автозаводская» → ЭЗС' },
+  { id: 'F-07', type: 'transit', to: 'ZIL-01', w: 0.30, growth: 1.00, from: { land: 'Снегоплавильный пункт' }, label: 'Транзит от производственных территорий → ЭЗС' },
   { id: 'F-08', type: 'private_ev', to: 'ZIL-04', w: 0.50, growth: 1.10, from: { land: 'Технопарк Nagatino i-Land' }, label: 'Nagatino i-Land → ЭЗС' },
   { id: 'F-09', type: 'corporate', to: 'ZIL-03', w: 0.40, growth: 1.10, from: { land: 'Технопарк Nagatino i-Land' }, label: 'Технопарк → ЭЗС (корпоративный)' },
   { id: 'F-10', type: 'private_ev', to: 'ZIL-05', w: 0.55, growth: 1.00, from: { land: 'Жилой комплекс 4River' }, label: 'ЖК на набережной → ЭЗС' },
-  { id: 'F-11', type: 'taxi', to: 'ZIL-05', w: 0.40, growth: 1.00, from: { land: 'Жилой комплекс RiverSky' }, label: 'Такси → ЭЗС Восточная' },
+  { id: 'F-11', type: 'transit', to: 'ZIL-05', w: 0.40, growth: 1.00, from: { land: 'Жилой комплекс RiverSky' }, label: 'Транзит → ЭЗС Восточная' },
   { id: 'F-12', type: 'private_ev', to: 'ZIL-06', w: 0.45, growth: 0.9, from: { land: 'Деловой квартал "Даниловская мануфактура' }, label: 'Жилые кварталы → ЭЗС Мытная' },
 ];
 

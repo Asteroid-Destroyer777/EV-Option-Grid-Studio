@@ -1,3 +1,4 @@
+import {gridCaseNodes} from './simulation/grid-case.js';
 import { YEARS, SCENARIOS, OPTIONS, EXCLUSIVE } from './simulation/params.js';
 import { STATION_DEFS, NODE_DEFS } from './data/dataset.js';
 
@@ -7,11 +8,12 @@ const views = ['map', 'scenarios', 'plan', 'passport', 'compare', 'data', 'resea
 const layers = ['city', 'demand', 'grid', 'investment', 'future'];
 const tabs = ['passport', 'options', 'decision', 'economics'];
 export const DEMAND_SCALES = [0.5, 1, 1.5, 2];
-const defaults = {year: 2026, scenario: 'base', selectedStation: null, selectedNode: null, view: 'map', activeLayer: 'city', panelTab: 'passport', decisions: [], panelHidden: false, selectedFlow: null, selectedSite: null};
+const defaults = {gridCase:'base', year: 2026, scenario: 'base', selectedStation: null, selectedNode: null, view: 'map', activeLayer: 'city', panelTab: 'passport', decisions: [], panelHidden: false, selectedFlow: null, selectedSite: null};
 const known = (choices, value, fallback) => choices.includes(value) ? value : fallback;
 
 export function readURL(search) {
   const p = new URLSearchParams(search), patch = {...defaults, decisions: []};
+  patch.gridCase = p.get('grid')==='limited'?'limited':'base';
   patch.year = known(YEARS, Number(p.get('y')), defaults.year);
   patch.scenario = Object.hasOwn(SCENARIOS, p.get('s')) ? p.get('s') : defaults.scenario;
   patch.selectedStation = stations.has(p.get('st')) ? p.get('st') : null;
@@ -38,13 +40,14 @@ export function readURL(search) {
 
 export function writeURL(url, state, demandScale) {
   const result = new URL(url), p = result.searchParams;
-  for (const key of ['y','s','st','nd','sec','l','tab','plan','scale']) p.delete(key);
+  for (const key of ['y','s','st','nd','sec','l','tab','plan','scale','grid']) p.delete(key);
   p.set('y', state.year); p.set('s', state.scenario);
   if (state.selectedStation) p.set('st', state.selectedStation);
   if (state.selectedNode) p.set('nd', state.selectedNode);
   if (state.view !== 'map') p.set('sec', String(views.indexOf(state.view) + 1).padStart(2, '0'));
   if (state.activeLayer !== 'city') p.set('l', state.activeLayer);
   if (state.panelTab !== 'passport') p.set('tab', state.panelTab);
+  if (state.gridCase==='limited') p.set('grid','limited');
   if (demandScale !== 1) p.set('scale', demandScale);
   if (state.decisions.length) p.set('plan', JSON.stringify(state.decisions.map(d => [d.station, d.year, d.options])));
   return result;
@@ -53,6 +56,7 @@ export function writeURL(url, state, demandScale) {
 export function bindURLState(state, dataset, subscribe, setState) {
   const initial = readURL(location.search);
   Object.assign(state, initial.patch); dataset.demandScale = initial.demandScale;
+  dataset.nodes = gridCaseNodes(dataset.nodes,initial.patch.gridCase);dataset.nodeById=Object.fromEntries(dataset.nodes.map(n=>[n.id,n]));
   const sync = () => {
     const url = writeURL(location.href, state, dataset.demandScale);
     if (url.href !== location.href) history.replaceState(history.state, '', url);
@@ -61,6 +65,8 @@ export function bindURLState(state, dataset, subscribe, setState) {
   window.addEventListener('popstate', () => {
     const next = readURL(location.search);
     dataset.demandScale = next.demandScale;
+    dataset.nodes=gridCaseNodes(dataset.nodes,next.patch.gridCase);dataset.nodeById=Object.fromEntries(dataset.nodes.map(n=>[n.id,n]));
+    next.patch.decisions=[...next.patch.decisions];
     setState(next.patch);
   });
 }

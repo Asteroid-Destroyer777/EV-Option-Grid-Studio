@@ -44,6 +44,7 @@ http.createServer(async (req, res) => {
   }
   try {
     let p = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
+    if(p.endsWith('/02_client_qa.md'))throw new Error('forbidden');
     if(p.split(/[\\/]/).some(s=>s.startsWith('.'))||/\.(blend|py|log)$/i.test(p))throw new Error('forbidden');
     if (p.endsWith('/') || p === '') p = join(p, 'index.html');
     let file = join(staticRoot, p);

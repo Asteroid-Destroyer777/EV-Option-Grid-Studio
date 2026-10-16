@@ -26,7 +26,7 @@ export const PROV = { scenario: TAG.scn, demo: TAG.demo, osm: TAG.osm, team: '<s
 export const STATUS_RU = { low: 'Низкая загрузка', mid: 'Нормальная', high: 'Высокая загрузка', constraint: 'Ограничение сети' };
 export const STATUS_SHORT = { low: 'НИЗКАЯ', mid: 'СРЕДНЯЯ', high: 'ВЫСОКАЯ', constraint: 'СЕТЬ' };
 export const chipStatus = (s) => `<span class="chip ${s}"><i></i>${STATUS_RU[s]}</span>`;
-export const RISK_RU = { low: 'низкий', mid: 'средний', high: 'высокий' };
+export const RISK_RU = { low: 'низкий', mid: 'средний', high: 'высокий',none:'не применим' };
 export const riskCls = (r) => r === 'high' ? 'bad' : r === 'mid' ? 'warn' : 'ok';
 export const optColor = (id) => OPTIONS[id].color;
 export const pkCode = (opts, ghost) => opts.map(o => `<span class="pk ${ghost || ''}" style="--c:${OPTIONS[o].color}"><i></i>${OPTIONS[o].code}</span>`).join('');

@@ -80,14 +80,15 @@ export function calculateDistrict(input){validateInput(input);const {area,candid
   const existing=area.stations.map((s,i)=>({...s,id:`existing-${i}`,posts:s.posts??p.defaultPosts,kw:s.kw??p.defaultKW}));
   const stations=[...existing,{...candidate,id:'candidate',posts:p.posts,kw:p.postKW,gridKW:p.gridKW}];
   const before=allocate(area,existing,p),after=allocate(area,stations,p);
-  const compute=(scale)=>{const flows=[];let first=null;
+  const compute=(scale)=>{const flows=[],networkFlows=[];let first=null;
     for(let t=1;t<=p.years;t++){
       const demand=p.dailyDemand*scale*(1+p.growth)**(t-1),active=t>p.lead;
       const a=day(stations,after,p,demand),b=day(existing,before,p,demand),own=a.stations.at(-1);
       if(!first&&active)first={year:t,withCandidate:a,withoutCandidate:b,candidate:own,netServed:a.served-b.served,capturedFromExisting:sum(b.stations.map(s=>s.offered))-sum(a.stations.slice(0,-1).map(s=>s.offered))};
       flows.push(active?own.served*365*p.energy*(p.tariff-p.energyCost)-p.opex:0);
+      networkFlows.push(active?(a.served-b.served)*365*p.energy*(p.tariff-p.energyCost)-p.opex:0);
     }
-    return {scale,first,finance:finances(flows,p)};
+    return {scale,first,finance:finances(flows,p),networkFinance:finances(networkFlows,p)};
   };
   return {version:'district-0.4.0',input,baseline:compute(1),sensitivity:[.5,1,1.5].map(compute),warnings:[
     'География не определяет число зарядных сессий: общий спрос и его источник заданы пользователем.',

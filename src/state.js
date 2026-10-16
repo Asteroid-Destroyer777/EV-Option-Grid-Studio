@@ -1,6 +1,7 @@
 // Единое состояние приложения. Изменение любого поля обновляет 3D, симуляцию и UI.
 export const state = {
   city: 'moscow',
+  gridCase: 'base',
   year: 2026,
   scenario: 'base',
   activeLayer: 'city',

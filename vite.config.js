@@ -14,7 +14,7 @@ export default defineConfig({
   worker: {format:'es'},
   plugins: [{name:'preserve-static-data', closeBundle() {
     for (const item of ['data','assets','vendor/leaflet','docs','research','design-options','design-options-v3','preview','previews','robots.txt','sitemap.xml']) {
-      if (existsSync(path('./' + item))) cpSync(path('./' + item), path('./dist/' + item), {recursive:true});
+      if (existsSync(path('./' + item))) cpSync(path('./' + item), path('./dist/' + item), {recursive:true, filter: src => !src.endsWith('/02_client_qa.md')});
     }
   }}],
 });

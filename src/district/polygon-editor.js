@@ -1,3 +1,4 @@
+import {fitMapBounds} from './map-view.js';
 import {normalizePolygon,validatePolygon,polygonAssessment} from './geography.js';
 
 // A single polygon survives dragging. Handles are rebuilt only after editing ends.
@@ -46,5 +47,5 @@ export function createPolygonEditor(map,L,{onChange,onStatus}){
  $('edit-area').onclick=()=>{mode=mode==='edit'?'idle':'edit';map.doubleClickZoom.enable();paint();notify();buildHandles();onStatus(mode==='edit'?'Перетаскивайте вершины. Стрелки клавиатуры также перемещают выбранную вершину.':'Границы сохранены. Можно выполнить расчёт.');};
  map.on('click',e=>{if(mode!=='draw')return;if(points.length>=100)return onStatus('Максимум 100 вершин.');const p={lat:e.latlng.lat,lon:e.latlng.lng};if(points.some(q=>map.latLngToContainerPoint([q.lat,q.lon]).distanceTo(map.latLngToContainerPoint(e.latlng))<3))return;points.push(p);paint();notify();buildHandles();});
  paint();
- return {get drawing(){return mode==='draw';},get editing(){return mode==='edit';},get points(){return points.map(p=>({...p}));},get valid(){return mode!=='draw'&&assessment().valid;},clear,setPoints(p,{fit=false,edit=false}={}){points=normalizePolygon(p);mode=edit?'edit':'idle';map.doubleClickZoom.enable();paint();notify();buildHandles();if(fit&&points.length>=3)map.fitBounds(latlngs(),{padding:[35,35]});},assertReady(){if(mode==='draw')throw new Error('Завершите контур перед расчётом.');const a=assessment();if(!a.valid)throw new Error(a.error);}};
+ return {get drawing(){return mode==='draw';},get editing(){return mode==='edit';},get points(){return points.map(p=>({...p}));},get valid(){return mode!=='draw'&&assessment().valid;},clear,setPoints(p,{fit=false,edit=false}={}){points=normalizePolygon(p);mode=edit?'edit':'idle';map.doubleClickZoom.enable();paint();notify();buildHandles();if(fit&&points.length>=3)fitMapBounds(map,latlngs(),{padding:[35,35],animate:!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches});},assertReady(){if(mode==='draw')throw new Error('Завершите контур перед расчётом.');const a=assessment();if(!a.valid)throw new Error(a.error);}};
 }

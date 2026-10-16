@@ -18,10 +18,10 @@ export function clearEconCache() { cache.clear(); }
 const sig = (a) => `${a.station}|${a.option}|${a.decisionYear}`;
 function allItems(decisions) { const { built, pending } = collectAssets(decisions, YEAR_MAX + 10); return [...built, ...pending]; }
 
-function marginOf(state) {
-  return revenueOf(state) - state.totals.gridEnergyKWhDay * MODEL.daysPerYear * MODEL.energyCost / 1e6;
+function marginOf(state, tariff = MODEL.tariff) {
+  return revenueOf(state, tariff) - state.totals.gridEnergyKWhDay * MODEL.daysPerYear * MODEL.energyCost / 1e6;
 }
-const revenueOf = (state) => state.stations.reduce((a, s) => a + s.served, 0) * 12 * revenuePerSession() / 1e6;
+const revenueOf = (state, tariff = MODEL.tariff) => state.stations.reduce((a, s) => a + s.served, 0) * 12 * MODEL.kwhPerSession * tariff / 1e6;
 const lostOf = (state) => state.totals.lost * 12;
 
 export function irr(cf) {
@@ -40,16 +40,21 @@ export function irr(cf) {
  * Экономика набора решений `decisions` относительно `baseline` в сценарии `scenario`.
  * Возвращает денежные потоки по годам, ЧПС, ВД, окупаемость.
  */
-export function economics(ds, scenario, decisions, baseline = []) {
+export function economics(ds, scenario, decisions, baseline = [], financial = {}) {
+  const tariff = financial.tariff ?? MODEL.tariff, capexScale = financial.capexScale ?? 1;
+  if (!Number.isFinite(tariff) || tariff < 0 || !Number.isFinite(capexScale) || capexScale < 0) throw new Error('Некорректные финансовые предпосылки.');
+  const life = financial.assetLifeYears ?? 12;
+  if (!Number.isFinite(life) || life <= 0) throw new Error('Срок службы должен быть положительным.');
   const A = seriesCached(ds, scenario, decisions), B = seriesCached(ds, scenario, baseline);
-  const proposed = allItems(decisions), previous = allItems(baseline);
+  const scaleAssets = plan => allItems(plan).map(a => ({...a,capex:a.capex * capexScale}));
+  const proposed = scaleAssets(decisions), previous = scaleAssets(baseline);
   const items = proposed;
   const cash = [], flows = [];
   let capexTotal = 0;
   for (let t = 0; t < ALL_YEARS.length; t++) {
     const y = ALL_YEARS[t];
-    const dMargin = marginOf(A[t]) - marginOf(B[t]);
-    const dRev = revenueOf(A[t]) - revenueOf(B[t]);
+    const dMargin = marginOf(A[t], tariff) - marginOf(B[t], tariff);
+    const dRev = revenueOf(A[t], tariff) - revenueOf(B[t], tariff);
     const dLost = lostOf(B[t]) - lostOf(A[t]);
     let opex = 0, capex = 0;
     for (const [assets, sign] of [[proposed, 1], [previous, -1]]) for (const a of assets) {
@@ -57,7 +62,7 @@ export function economics(ds, scenario, decisions, baseline = []) {
       if (a.decisionYear === y) capex += sign * a.capex;
     }
     capexTotal += capex;
-    const salvage = assets => MODEL.residual * assets.filter(a => a.effYear <= YEAR_MAX && a.option !== 'defer').reduce((s, a) => s + a.capex, 0);
+    const salvage = assets => assets.filter(a => a.effYear <= YEAR_MAX && a.option !== 'defer').reduce((s,a) => s + a.capex * (financial.residualPolicy === 'linear-life' ? Math.max(0,1-(YEAR_MAX-a.effYear+1)/life) : MODEL.residual),0);
     const residual = y === YEAR_MAX ? salvage(proposed) - salvage(previous) : 0;
     const operating = dMargin - opex;
     const c = operating - capex + residual;
@@ -66,7 +71,9 @@ export function economics(ds, scenario, decisions, baseline = []) {
     if (t === 0) cash.push(-capex); else cash[t] -= capex;
     cash.push(operating + residual);
     const discounted = -capex / (1 + MODEL.discount) ** t + (operating + residual) / (1 + MODEL.discount) ** (t + 1);
-    flows.push({ year: y, dMargin, dRev, opex, capex, operating, residual, discounted, cash: c, goodwill: good, dLost });
+    const competitorCapture = (B[t].spatial?.competitors ?? 0) - (A[t].spatial?.competitors ?? 0);
+    const outsideCapture = (B[t].spatial?.outside ?? 0) - (A[t].spatial?.outside ?? 0);
+    flows.push({ year: y, dMargin, dRev, opex, capex, operating, residual, discounted, cash: c, goodwill: good, dLost,competitorCapture,outsideCapture });
   }
   const npv = flows.reduce((a, f) => a + f.discounted, 0);
   const goodPV = flows.reduce((a, f, t) => a + f.goodwill / Math.pow(1 + MODEL.discount, t + 1), 0);
@@ -121,9 +128,12 @@ export function evaluatePackage(ds, { station, year, options, baseline, weights 
   out.expScore = Object.keys(sc).reduce((a, k) => a + P[k] * sc[k].npvAdj, 0);
   out.capex = sc.base.capex;
   // риск недозагрузки: как загружена целевая ёмкость при низком росте в 2030
-  const lowLoad = sc.low.focusLoad2030;
-  const added = options.some(o => ['new_station', 'expansion', 'pilot'].includes(o));
-  out.riskUnder = !added ? 'low' : lowLoad < 0.45 ? 'high' : lowLoad < 0.62 ? 'mid' : 'low';
   out.lead = Math.max(0, ...options.map(o => OPTIONS[o].lead));
+  out.riskYear=Math.min(2035,Math.max(2030,year+out.lead));
+  const lowState=seriesCached(ds,'low',withPkg)[ALL_YEARS.indexOf(out.riskYear)];
+  const lowLoad = Math.max(lowState.byId[station].load,...lowState.stations.filter(s=>s.anchor===station).map(s=>s.load));
+  const added = options.some(o => ['new_station', 'expansion', 'pilot'].includes(o));
+  out.riskUnder = !added ? 'none' : lowLoad < 0.45 ? 'high' : lowLoad < 0.62 ? 'mid' : 'low';
+  out.lossScenarios = Object.values(sc).filter(s=>s.npv<0).length;
   return out;
 }
