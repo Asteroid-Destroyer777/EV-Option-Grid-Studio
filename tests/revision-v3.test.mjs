@@ -8,3 +8,10 @@ test('Подписи метро сохраняют тип; одноимённы�
 test('Улицы скрыты в мелком масштабе, подписи не меняют объекты модели',()=>{const raw=[{id:1,center:{lat:55.7,lon:37.6},tags:{highway:'primary',name:'Автозаводская улица'}}],before=JSON.stringify(raw);assert.equal(labelCandidates(raw,[],12).length,0);assert.equal(labelCandidates(raw,[],14)[0].kind,'road');assert.equal(JSON.stringify(raw),before);});
 
 test('Новый поиск после загрузки данных получает собственные семь секунд',async()=>{let time=0,timer,delay;const p=createCalculationPresentation(mockElement(),{now:()=>time,setTimer:(fn,ms)=>{timer=fn;delay=ms;return 1;},clearTimer:()=>{timer=null;}});p.show();const loaded=p.finish();time=6500;p.show();await loaded;const ranked=p.finish();assert.equal(delay,7000);timer();await ranked;});
+
+test('Пропуск заставки открывает только готовый расчёт и сохраняет выбор',async()=>{
+  let timer,delay,shown=0;const el=mockElement(),p=createCalculationPresentation(el,{now:()=>0,setTimer:(fn,ms)=>{timer=fn;delay=ms;return 1;},clearTimer:()=>{timer=null;}});
+  p.show();p.skip();assert.equal(el.hidden,false);const done=p.finish(()=>shown++);assert.equal(delay,0);timer();await done;assert.equal(shown,1);
+  p.show();const again=p.finish(()=>shown++);assert.equal(delay,0);p.skip();await again;assert.equal(shown,2);assert.equal(timer,null);
+  p.show();const cancelled=p.finish(()=>shown++);p.cancel();await cancelled;p.skip();assert.equal(shown,2);
+});

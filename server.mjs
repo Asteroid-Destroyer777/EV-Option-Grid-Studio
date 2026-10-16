@@ -11,10 +11,14 @@ import {calculateDistrict} from './src/district/model.js';
 
 try{const env=await readFile(new URL('.env.local',import.meta.url),'utf8');for(const line of env.split(/\r?\n/)){const m=line.match(/^([A-Z_]+)=(.*)$/);if(m&&!process.env[m[1]])process.env[m[1]]=m[2].trim();}}catch{}
 const root = fileURLToPath(new URL('.', import.meta.url));
+const staticRoot = process.argv.includes('--dist') ? join(root, 'dist/') : root;
+const deployment = JSON.parse(await readFile(new URL('vercel.json', import.meta.url), 'utf8'));
+const securityHeaders = Object.fromEntries(deployment.headers.find(rule => rule.source === '/(.*)').headers.map(h => [h.key, h.value]));
 const port = Number(process.argv[2]) || 5173;
-const types = { '.html': 'text/html; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
+const types = { '.html': 'text/html; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
 
 http.createServer(async (req, res) => {
+  for (const [key, value] of Object.entries(securityHeaders)) res.setHeader(key, value);
   if(req.url==='/api/assistant'){
     res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');
     if(req.method!=='POST'){res.writeHead(405);return res.end(JSON.stringify({error:'Используйте POST.'}));}
@@ -40,15 +44,19 @@ http.createServer(async (req, res) => {
   }
   try {
     let p = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
+    if(p.endsWith('/02_client_qa.md'))throw new Error('forbidden');
     if(p.split(/[\\/]/).some(s=>s.startsWith('.'))||/\.(blend|py|log)$/i.test(p))throw new Error('forbidden');
     if (p.endsWith('/') || p === '') p = join(p, 'index.html');
-    let file = join(root, p);
-    if (!file.startsWith(root)) throw new Error('forbidden');
+    let file = join(staticRoot, p);
+    if (!file.startsWith(staticRoot)) throw new Error('forbidden');
     if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
     const data = await readFile(file);
-    res.writeHead(200, { 'Content-Type': file.endsWith('.json.gz')?'application/json':types[extname(file)] || 'application/octet-stream', ...(file.endsWith('.json.gz')?{'Content-Encoding':'gzip'}:{}), 'Cache-Control': 'no-store' });
+    const cache = !process.argv.includes('--dist') ? 'no-store' : p.startsWith('/build-assets/') ? 'public, max-age=31536000, immutable' : /^\/(assets|data|vendor|fonts)\//.test(p) ? 'public, max-age=3600, must-revalidate' : 'public, max-age=0, must-revalidate';
+    res.writeHead(200, { 'Content-Type': file.endsWith('.json.gz')?'application/json':types[extname(file)] || 'application/octet-stream', ...(file.endsWith('.json.gz')?{'Content-Encoding':'gzip'}:/charger-mesh\.bin(?:-[^/]+)?\.br$/.test(file)?{'Content-Encoding':'br'}:{}), 'Cache-Control': cache });
     res.end(data);
   } catch {
-    res.writeHead(404); res.end('Not found');
+    res.writeHead(404, {'Content-Type':'text/html; charset=utf-8'});
+    try { res.end(await readFile(join(staticRoot, '404.html'))); }
+    catch { res.end('<!doctype html><html lang="ru"><title>404</title><h1>Страница не найдена</h1><a href="/">На главную</a></html>'); }
   }
 }).listen(port, process.env.HOST || '127.0.0.1', () => console.log(`EV-Option Grid: http://localhost:${port}/`));

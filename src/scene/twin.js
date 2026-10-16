@@ -123,9 +123,9 @@ export async function createTwin({ canvas, labelsEl, onStep }) {
 
   /* -------------------- синхронизация состояния -------------------- */
   const stationLabelHTML = (st) => {
-    const pct = Math.round(st.load * 100);
-    const flag = st.status === 'constraint' ? '<em>ОГРАНИЧЕНИЕ СЕТИ</em>' : st.queueRisk === 'high' ? `<em class="q">${st.queueUnstable ? 'перегрузка в пик' : st.waitCapped ? 'ожидание ≥120 мин' : 'очередь ~' + Math.round(st.wait) + ' мин'}</em>` : '';
-    return `<i class="dot"></i><b>${st.id}</b><span class="pct">${pct}%</span>${flag}`;
+    const pct = Math.round(st.rho * 100);
+    const flag = st.status === 'constraint' ? '<em>ОГРАНИЧЕНИЕ СЕТИ</em>' : st.queueRisk === 'high' ? `<em class="q">${st.queueUnstable ? 'перегрузка в пик' : st.waitCapped ? 'эталон M/M/c ≥120 мин' : 'эталон M/M/c ~' + Math.round(st.wait) + ' мин'}</em>` : '';
+    return `<i class="dot"></i><b>${st.id}</b><span class="pct" title="Пиковая загрузка; средняя за сутки ${Math.round(st.load * 100)}%">пик ${pct}%</span>${flag}`;
   };
   const nodeLabelHTML = (n) => {
     const st = n.status === 'constraint' ? 'constraint' : n.status;

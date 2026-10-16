@@ -2,9 +2,10 @@
 import { evaluate, evaluateSeries } from './engine.js';
 import { recommend, pkgKey } from './recommend.js';
 import { ALL_YEARS, MODEL, SCENARIOS, OPTIONS } from './params.js';
+import { PLANNING_DEFAULTS } from './assumptions.js';
 import { seriesCached } from './economics.js';
 
-export const PLAN_YEARS = [2027, 2030, 2035];
+export const PLAN_YEARS = [...PLANNING_DEFAULTS.decisionYears];
 
 /** Рекомендованная траектория План зарядной сети: на каждой контрольной точке — лучший пакет для самых «горячих» станций. */
 export function recommendedPlan(ds, scenario) {
@@ -12,11 +13,11 @@ export function recommendedPlan(ds, scenario) {
   for (const y of PLAN_YEARS) {
     const st = evaluate(ds, { year: y, scenario, decisions });
     const hot = st.stations.filter(s => !s.isNew && (s.load >= 0.72 || s.queueRisk === 'high' || s.status === 'constraint' || s.unserved > 1))
-      .sort((a, b) => (b.rho + (b.status === 'constraint' ? 1 : 0)) - (a.rho + (a.status === 'constraint' ? 1 : 0))).slice(0, 3);
+      .sort((a, b) => (b.rho + (b.status === 'constraint' ? 1 : 0)) - (a.rho + (a.status === 'constraint' ? 1 : 0))).slice(0, MODEL.planMaxStations);
     for (const s of hot) {
       const r = recommend(ds, { station: s.id, year: y, baseline: decisions, scenario });
       const best = r.best;
-      if (best.options[0] === 'none' || best.score <= 2) continue;
+      if (best.options[0] === 'none' || best.score <= MODEL.planMinScore) continue;
       decisions.push({ station: s.id, year: y, options: [...best.options] });
     }
   }
@@ -27,14 +28,14 @@ export function recommendedPlan(ds, scenario) {
 export function traditionalPlan(ds, scenario) {
   const decisions = [];
   const built = new Set();
-  for (const y of PLAN_YEARS) {
+  for (const y of ALL_YEARS.filter(y => y >= 2027)) {
     const st = evaluate(ds, { year: y, scenario, decisions });
-    for (const s of st.stations) {
+    for (const s of [...st.stations].sort((a,b)=>b.rho-a.rho)) {
       if (s.isNew) continue;
-      if ((s.load >= 0.8 || s.unserved > 1) && !built.has(s.id)) { decisions.push({ station: s.id, year: y, options: ['new_station'] }); built.add(s.id); }
+      if (y + OPTIONS.new_station.lead <= ALL_YEARS.at(-1) && (s.rho >= .8 || s.unserved > 1) && !built.has(s.id)) { decisions.push({ station: s.id, year: y, options: ['new_station'] }); built.add(s.id); }
     }
     for (const n of Object.values(st.nodes)) {
-      if (n.status === 'constraint' && n.upgrade === 0 && !decisions.some(d => d.options.includes('grid_upgrade') && ds.byId[d.station].node === n.id)) {
+      if (y + OPTIONS.grid_upgrade.lead <= ALL_YEARS.at(-1) && n.status === 'constraint' && n.upgrade === 0 && !decisions.some(d => d.options.includes('grid_upgrade') && ds.byId[d.station].node === n.id)) {
         decisions.push({ station: n.stations.find(id => !id.includes('-N')), year: y, options: ['grid_upgrade'] });
       }
     }

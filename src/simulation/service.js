@@ -1,7 +1,7 @@
 import { evaluate } from './engine.js';
 import { economics } from './economics.js';
 import { MODEL, OPTIONS, SCENARIOS, YEAR_MIN, YEAR_MAX } from './params.js';
-import { RESEARCH } from '../data/research-bundle.js';
+import { RESEARCH } from '../data/research-core.js';
 
 const check = (ok, message) => { if (!ok) throw new Error(message); };
 const number = (v, min, max) => Number.isFinite(v) && v >= min && v <= max;
@@ -35,7 +35,8 @@ export function calculateRequest(input) {
   }
   check(!ds.demandModel || ds.demandModel === 'huff-zil-v1', 'Неизвестная модель спроса.');
   check(ds.demandScale == null || number(ds.demandScale, 0.25, 2), 'Множитель спроса от 0,25 до 2.');
-  const clean = { demandModel:ds.demandModel, demandScale:ds.demandScale, stations: ds.stations, nodes: ds.nodes, byId: Object.fromEntries(ds.stations.map(s => [s.id, s])) };
+  check(ds.attractivenessExponent == null || number(ds.attractivenessExponent, .3, 1), 'Показатель привлекательности от 0,3 до 1.');
+  const clean = { demandModel:ds.demandModel, demandScale:ds.demandScale, attractivenessExponent:ds.attractivenessExponent, stations: ds.stations, nodes: ds.nodes, byId: Object.fromEntries(ds.stations.map(s => [s.id, s])) };
   return { modelVersion: '0.3.0', assumptions: MODEL, options: OPTIONS, year, scenario, decisions,
     researchVersion: RESEARCH.version, sourceFiles: RESEARCH.sourceFiles,
     provenance: 'Сценарные параметры, не измерения оператора',

@@ -1,11 +1,15 @@
 // Форматирование, бирки происхождения данных, SVG-графики.
 import { USER_TYPES, OPTIONS, SCENARIOS, ALL_YEARS } from '../simulation/params.js';
 
-export const num = (v, d = 1) => (v == null || !Number.isFinite(v) ? '—' : v.toFixed(d).replace('.', ','));
-export const int = (v) => (v == null || !Number.isFinite(v) ? '—' : Math.round(v).toLocaleString('ru-RU').replace(/[  ]/g, ' '));
-export const pct = (v, d = 0) => (v == null || !Number.isFinite(v) ? '—' : (v * 100).toFixed(d).replace('.', ',') + '%');
-export const mln = (v, d = 0) => (v == null ? '—' : (v >= 0 ? '' : '−') + Math.abs(v).toFixed(d).replace('.', ',') + ' млн ₽');
-export const sgn = (v, d = 0) => (v == null ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d).replace('.', ','));
+const rounded = (v, d) => Number(Number(v).toFixed(d)) || 0;
+export const num = (v, d = 1) => (v == null || !Number.isFinite(v) ? '—' : rounded(v, d).toFixed(d).replace('.', ','));
+export const int = (v) => (v == null || !Number.isFinite(v) ? '—' : (Math.round(v) || 0).toLocaleString('ru-RU').replace(/[  ]/g, ' '));
+export const pct = (v, d = 0) => (v == null || !Number.isFinite(v) ? '—' : num(v * 100, d) + '%');
+export const mln = (v, d = 0) => (v == null || !Number.isFinite(v) ? '—' : (rounded(v, d) < 0 ? '−' : '') + num(Math.abs(v), d) + ' млн ₽');
+export const sgn = (v, d = 0) => (v == null || !Number.isFinite(v) ? '—' : (rounded(v, d) > 0 ? '+' : rounded(v, d) < 0 ? '−' : '') + num(Math.abs(v), d));
+export const queueText = s => s.queueUnstable ? 'Перегрузка' : s.waitCapped ? '≥120 мин' : num(s.wait) + ' мин';
+// Неустойчивый режим выше любой конечной очереди; затем ожидание, пик и идентификатор.
+export const attentionCompare = (a, b) => Number(b.queueUnstable) - Number(a.queueUnstable) || b.wait - a.wait || b.rho - a.rho || a.id.localeCompare(b.id);
 export const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export const TAG = {
@@ -22,7 +26,7 @@ export const PROV = { scenario: TAG.scn, demo: TAG.demo, osm: TAG.osm, team: '<s
 export const STATUS_RU = { low: 'Низкая загрузка', mid: 'Нормальная', high: 'Высокая загрузка', constraint: 'Ограничение сети' };
 export const STATUS_SHORT = { low: 'НИЗКАЯ', mid: 'СРЕДНЯЯ', high: 'ВЫСОКАЯ', constraint: 'СЕТЬ' };
 export const chipStatus = (s) => `<span class="chip ${s}"><i></i>${STATUS_RU[s]}</span>`;
-export const RISK_RU = { low: 'низкий', mid: 'средний', high: 'высокий' };
+export const RISK_RU = { low: 'низкий', mid: 'средний', high: 'высокий',none:'не применим' };
 export const riskCls = (r) => r === 'high' ? 'bad' : r === 'mid' ? 'warn' : 'ok';
 export const optColor = (id) => OPTIONS[id].color;
 export const pkCode = (opts, ghost) => opts.map(o => `<span class="pk ${ghost || ''}" style="--c:${OPTIONS[o].color}"><i></i>${OPTIONS[o].code}</span>`).join('');

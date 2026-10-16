@@ -1,8 +1,10 @@
+import {requestAnalysis,cancelAnalysis} from './analysis.js';
 // Оркестрация интерфейса: события, горячие клавиши, подсказки, тосты, чек-лист «Сценарий защиты».
 import { state, setState } from '../state.js';
 import { exportAudit, verifyServer } from './audit.js';
-import { setDemandScale } from './research.js';
+import { setDemandScale, setGridCase } from './research.js';
 import { requestPlan } from './plan-request.js';
+import { initNavigation, navigationIsOpen } from './navigation.js';
 import { dataset as ds } from '../data/dataset.js';
 import * as A from '../actions.js';
 import { USER_TYPES, OPTIONS, YEARS } from '../simulation/params.js';
@@ -18,6 +20,7 @@ let playTimer = null, toastTimer = null;
 export function initUI() {
   window.__types = USER_TYPES;
   renderRail(); renderTopbar(); renderDock(); renderLegend(); renderHud();
+  initNavigation();
   window.__act = A;
   document.addEventListener('click', onClick);
   document.addEventListener('mouseover', e => { const h = e.target.closest?.('[data-hover]'); if (h) A.hoverOption(h.dataset.hover); });
@@ -30,8 +33,17 @@ function onClick(e) {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const act = el.dataset.act, arg = el.dataset.arg;
   switch (act) {
+    case 'analysis-run': requestAnalysis(arg,toast); break;
+    case 'analysis-cancel': cancelAnalysis(arg); break;
+    case 'investment-case':
+      setDemandScale(1.5); A.setYear(2027); A.setScenario('high');
+      A.selectStation('ZIL-01'); A.setLayer('investment');
+      toast('Тест чувствительности: спрос ×1,5. Исходные тарифы, сметы и текущий план сохранены.', 6000);
+      break;
+    case 'grid-case': setGridCase(arg); break;
     case 'research-scale': setDemandScale(arg); break;
-    case 'export-audit': exportAudit(); break;
+    case 'export-audit': exportAudit().catch(() => toast('Не удалось загрузить реестр для экспорта. Повторите попытку.')); break;
+    case 'registry-retry': updateUI(new Set(['view'])); break;
     case 'verify-server': verifyServer(); break;
     case 'view': A.setView(arg); break;
     case 'year': A.setYear(+arg); break;
@@ -81,8 +93,9 @@ function togglePlay() {
 export function stopPlay() { if (state.playing) { clearInterval(playTimer); setState({ playing: false }); } }
 
 function onKey(e) {
-  if (e.target.closest?.('input,textarea,select')) return;
+  if (e.target.closest?.('input,textarea,select,dialog[open]')) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (state.view !== 'map' || navigationIsOpen()) return;
   const k = e.key;
   if (state.demo) { if (k === 'Escape') window.__demo?.skip(); return; }
   if (['1', '2', '3', '4', '5'].includes(k)) { A.setLayer(['city', 'demand', 'grid', 'investment', 'future'][+k - 1]); return; }
@@ -107,7 +120,7 @@ export function showTip(x, y, html) {
 }
 export function tipFor(hit) {
   const sim = state.networkState; if (!hit || !sim) return null;
-  if (hit.kind === 'station') { const s = sim.byId[hit.id]; if (!s) return null; return `<b>ЭЗС ${s.id}</b>Загрузка ${pct(s.load)} · ${s.posts} постов${s.queueRisk === 'high' ? '<br><span style="color:var(--st-high)">' + (s.queueUnstable ? 'Перегрузка в пик' : s.waitCapped ? 'Ожидание ≥120 мин' : 'Ожидание ~' + Math.round(s.wait) + ' мин') + '</span>' : ''}${s.status === 'constraint' ? '<br><span style="color:#c6bdff">ОГРАНИЧЕНИЕ СЕТИ</span>' : ''}<br><span class="mn">клик — паспорт</span>`; }
+  if (hit.kind === 'station') { const s = sim.byId[hit.id]; if (!s) return null; return `<b>ЭЗС ${s.id}</b>Пик ${pct(s.rho)} · средняя ${pct(s.load)} · ${s.posts} постов${s.queueRisk === 'high' ? '<br><span style="color:var(--st-high)">' + (s.queueUnstable ? 'Перегрузка в пик' : s.waitCapped ? 'Эталон M/M/c ≥120 мин' : 'Эталон M/M/c ~' + Math.round(s.wait) + ' мин') + '</span>' : ''}${s.status === 'constraint' ? '<br><span style="color:#c6bdff">ОГРАНИЧЕНИЕ СЕТИ</span>' : ''}<br><span class="mn">клик — паспорт</span>`; }
   if (hit.kind === 'node') { const n = sim.nodes[hit.id]; return `<b>ПС ${hit.id.replace('SUB-', '')}</b>Допустимая ${n.H.toFixed(2)} МВт · плановая ${n.desired.toFixed(2)} МВт<br>${TAG.scn}<br><span class="mn">клик — энергетический паспорт</span>`; }
   if (hit.kind === 'site') return `<b>Потенциальная площадка</b>Рядом с ${hit.id}<br><span class="mn">клик — варианты инвестиций</span>`;
   if (hit.kind === 'flow') { const f = ds.flows.find(x => x.id === hit.id); const t = USER_TYPES[f.type]; return `<b style="color:${t.color}">${t.name}</b>Пик: ${t.peak}<br><span class="mn">клик — профиль спроса</span>`; }
@@ -150,7 +163,7 @@ export function updateUI(changed) {
   updateTimeline(); updateDock(); updateLegend();
   renderChain();
   if (has('panelHidden','selectedStation', 'selectedNode', 'selectedFlow', 'selectedSite', 'panelTab', 'view', 'year', 'scenario', 'decisions', 'activeLayer', 'networkState', 'walkMode')) renderPanel();
-  if (has('planBusy','planMessage','view', 'year', 'scenario', 'decisions', 'selectedStation', 'networkState')) renderSheet();
+  if (has('analysisTick','planBusy','planMessage','view', 'year', 'scenario', 'decisions', 'selectedStation', 'networkState')) renderSheet();
   if (has('guideOpen', 'year', 'scenario', 'decisions', 'activeLayer', 'selectedStation', 'panelTab', 'walkMode', 'focusOption')) renderGuide();
   if (has('decisions', 'scenario')) clearCompareCache();
 }

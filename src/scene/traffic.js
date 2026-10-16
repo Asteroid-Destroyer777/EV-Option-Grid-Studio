@@ -169,7 +169,7 @@ export class Traffic {
   buildFlows(defs, stationPos) {
     const g = this.graph;
     const types = {
-      private_ev: { geo: this.carGeo, cap: 90 }, taxi: { geo: this.carGeo, cap: 90 }, corporate: { geo: this.carGeo, cap: 60 },
+      private_ev: { geo: this.carGeo, cap: 90 }, transit: { geo: this.carGeo, cap: 90 }, taxi: { geo: this.carGeo, cap: 90 }, corporate: { geo: this.carGeo, cap: 60 },
       ebus: { geo: this.busGeo, cap: 24 }, municipal: { geo: this.truckGeo, cap: 24 },
     };
     this.typeMesh = {};
@@ -217,7 +217,7 @@ export class Traffic {
       for (let i = 0; i < f.count && t.used < t.cap; i++) {
         const idx = t.used++;
         f.veh.push({ idx, s: (f.path.len * (i + Math.random() * 0.5)) / Math.max(1, f.count), seg: 0, speed: (f.type === 'ebus' ? 8 : 10) + Math.random() * 3 });
-        const palette = f.type === 'private_ev' ? ['#cfe9ff', '#8fc9e8', '#ffffff', '#7fd6e8'] : f.type === 'taxi' ? ['#ffe14d'] : f.type === 'corporate' ? ['#e6e0ff'] : f.type === 'ebus' ? ['#6f86ff'] : ['#ff8a3d'];
+        const palette = f.type === 'private_ev' ? ['#cfe9ff', '#8fc9e8', '#ffffff', '#7fd6e8'] : f.type === 'transit' ? ['#bca5f4', '#d6cfff'] : f.type === 'taxi' ? ['#ffe14d'] : f.type === 'corporate' ? ['#e6e0ff'] : f.type === 'ebus' ? ['#6f86ff'] : ['#ff8a3d'];
         c.set(palette[i % palette.length]); t.mesh.setColorAt(idx, c);
       }
     }

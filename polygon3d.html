@@ -13,27 +13,47 @@
 <link rel="stylesheet" href="src/styles/dark.css">
 <link rel="stylesheet" href="src/styles/experience.css">
 <link rel="stylesheet" href="src/styles/studio.css">
-<script type="module" src="src/experience.js"></script>
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
 </script>
+<script type="module" src="src/experience.js"></script>
 <link rel="stylesheet" href="src/assistant/style.css">
+<link rel="stylesheet" href="src/styles/audit-fixes.css">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="EV-Option Grid">
+<meta property="og:title" content="3D · ЗИЛ — EV-Option Grid">
+<meta property="og:description" content="Спрос, пиковая загрузка, ограничения энергосети и инвестиционные варианты на цифровом двойнике ЗИЛ.">
+<meta property="og:url" content="https://ev-option-grid-studio.vercel.app/polygon3d.html">
+<meta property="og:image" content="https://ev-option-grid-studio.vercel.app/assets/og-polygon.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Цифровой двойник ЗИЛ — EV-Option Grid">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="3D · ЗИЛ — EV-Option Grid">
+<meta name="twitter:description" content="Спрос, пиковая загрузка, ограничения энергосети и инвестиционные варианты на цифровом двойнике ЗИЛ.">
+<meta name="twitter:image" content="https://ev-option-grid-studio.vercel.app/assets/og-polygon.jpg">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 </head>
 <body>
+<a class="skip-link" href="#main">К основному содержимому</a>
 <div id="app" data-mode="orbit" data-layer="city">
-  <div id="stage"><canvas id="gl"></canvas><div id="labels"></div></div>
   <div id="ui">
-    <aside id="rail"></aside>
+    <button id="nav-toggle" aria-controls="rail" aria-expanded="false" aria-label="Открыть меню разделов">☰ <span>Разделы</span></button>
+    <button id="nav-backdrop" aria-label="Закрыть меню разделов" hidden></button>
+    <aside id="rail" aria-label="Навигация проекта"></aside>
     <header id="topbar"></header>
     <div id="chain"></div>
-    <aside id="panel" class="panel-empty"></aside>
+    <main id="main" tabindex="-1"><aside id="panel" class="panel-empty" aria-label="Обзор района и карточка объекта"></aside></main>
     <div id="dock"></div>
     <div id="sheet" hidden></div>
     <div id="hud"></div>
     <div id="tooltip" hidden></div>
-    <div id="toast" hidden></div>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
     <div id="caption" hidden></div>
   </div>
+  <div id="stage"><canvas id="gl" aria-label="Трёхмерная модель района ЗИЛ"></canvas><div id="labels"></div></div>
   <div id="boot">
     <div class="boot-inner">
       <div class="boot-mark"></div>

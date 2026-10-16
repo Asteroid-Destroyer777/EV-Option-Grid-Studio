@@ -85,6 +85,7 @@ export function clearSelection() { setState({ panelHidden:true, selectedStation:
 
 /* ---------- инвестиционные решения ---------- */
 export function setPackage(station, year, opts) {
+  if(year===2035&&opts.length){ctx.toast('2035 — год оценки результата. Для нового решения выберите 2027 или 2030.');return;}
   const others = state.decisions.filter(d => !(d.station === station && d.year === year));
   const decisions = opts.length ? [...others, { station, year, options: [...opts] }] : others;
   setState({ decisions, investmentOption: opts.length ? opts[opts.length - 1] : null, focusOption: opts.length ? opts[opts.length - 1] : null });
@@ -101,6 +102,7 @@ export function toggleOption(id) {
   setState({ focusOption: id, investmentOption: id, panelTab: state.panelTab === 'options' ? 'decision' : state.panelTab });
 }
 export function applyRecommended() {
+  if(state.year===2035){ctx.toast('Решения оцениваются до 2030; 2035 показывает итог плана.');return;}
   const st = state.selectedStation; if (!st) return;
   const r = recommendation(st, state.year); if (!r) return;
   setPackage(st, state.year, r.best.options);

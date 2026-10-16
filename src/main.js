@@ -13,13 +13,19 @@ import { initUI, updateUI, toast, renderGuide } from './ui/index.js';
 import { WalkController } from './controls/walk.js';
 import { initInteraction } from './controls/interaction.js';
 import { createDemo } from './controls/demo.js';
+import { bindURLState } from './url-state.js';
+import { loadChargerModel } from './scene/charger-model.js';
 
 const $ = (s) => document.querySelector(s);
 
 async function boot() {
   const t0 = performance.now();
-  await loadGeo('data/zil.json', p => { $('#bootbar').style.width = (p * 10) + '%'; });
+  await Promise.all([
+    loadGeo(new URL('../data/zil.json', import.meta.url), p => { $('#bootbar').style.width = (Math.min(1, p) * 10) + '%'; }),
+    loadChargerModel(),
+  ]);
   initDataset();
+  bindURLState(state, dataset, subscribe, setState);
   initUI();
   initAssistant();
   const twin = await createTwin({ canvas: $('#gl'), labelsEl: $('#labels'), onStep: (t, p) => { $('#bootstep').textContent = t; $('#bootbar').style.width = (10 + p * 90) + '%'; } });
@@ -48,6 +54,8 @@ async function boot() {
     onTeleportMenu: () => showTeleport(),
   });
   A.bind({ twin, walk, toast });
+  $('#gl').addEventListener('webglcontextlost', () => toast('Графическая сцена восстанавливается…', 60000));
+  $('#gl').addEventListener('webglcontextrestored', () => toast('Графическая сцена восстановлена.'));
   initInteraction(twin, $('#gl'));
   const demo = createDemo(twin); window.__demo = demo;
 
@@ -72,7 +80,7 @@ async function boot() {
   /* ---------- синхронизация состояния ---------- */
   let shiftKey = '';
   function updateShift() {
-    const rail = state.walkMode ? 0 : $('#rail').getBoundingClientRect().width;
+    const rail = state.walkMode || matchMedia('(max-width: 768px)').matches ? 0 : $('#rail').getBoundingClientRect().width;
     const panelEl = $('#panel');
     const panel = (state.view === 'map' && !panelEl.hidden) ? panelEl.getBoundingClientRect().width + 20 : 0;
     const k = rail + '|' + panel; if (k === shiftKey) return; shiftKey = k;
@@ -97,6 +105,7 @@ async function boot() {
   twin.applyState(state, state.networkState);
   updateUI(new Set(['year', 'scenario', 'decisions', 'activeLayer', 'view', 'selectedStation', 'panelTab', 'networkState', 'guideOpen']));
   updateShift();
+  if (state.selectedStation) A.flyToStation(state.selectedStation);
   // прогрев рекомендаций (чтобы первый клик по ZIL-01 был мгновенным)
   setTimeout(() => { try { recommend(dataset, { station: 'ZIL-01', year: 2026, baseline: [], scenario: 'base' }); recommend(dataset, { station: 'ZIL-01', year: 2027, baseline: [], scenario: 'base' }); } catch (e) { console.warn(e); } }, 400);
 

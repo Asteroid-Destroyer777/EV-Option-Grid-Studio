@@ -111,7 +111,7 @@ function stateFor(ds, year, scenario, decisions) {
   // Новые ЭЗС перераспределяют существующий спрос; индуцированного спроса нет.
   let spatial = null;
   if (ds.demandModel === 'huff-zil-v1') {
-    const allocation = allocateSpatial(stations);
+    const allocation = allocateSpatial(stations, ds.attractivenessExponent);
     const factor = F * (ds.demandScale ?? 1);
     spatial = { total: allocation.total * factor, own: allocation.own * factor, competitors: allocation.competitors * factor, outside: allocation.outside * factor };
     for (const s of stations) {
@@ -200,8 +200,9 @@ function day(st, startingSOC, record) {
       const localServed = r.served - r.spillIn;
       r.lost = Math.max(0, r.arrivals - localServed - r.spillOut);
       r.unserved = Math.max(0, r.arrivals - localServed);
-      const admittedDemand = Math.max(0, r.arrivals - r.spillOut + r.spillIn);
-      r.rho = r.capacity > EPS ? admittedDemand / r.capacity : (admittedDemand > EPS ? 2 : 0);
+      // Offered pressure includes rejected attempts, not only admitted clients.
+      const offeredDemand = Math.max(0, r.arrivals - r.spillOut + r.spillIn);
+      r.rho = r.capacity > EPS ? offeredDemand / r.capacity : (offeredDemand > EPS ? 2 : 0);
       const serviceMinutes = r.capacity > EPS ? s.posts * 60 / r.capacity : s.serviceHours * 60;
       const q = queueMetrics(r.rho, s.posts, serviceMinutes);
       Object.assign(r, { wait: q.wait, queueCars: q.cars, queueStable: q.stable, waitCapped: q.waitCapped, powerMW: r.served * energy });
@@ -240,6 +241,11 @@ export function evaluate(ds, { year, scenario = 'base', decisions = [] }) {
     s.segmentDemand = Object.fromEntries(TYPES.map(t => [t, s.D * s.mix[t]]));
   }
   for (const n of Object.values(nodes)) {
+    n.connectedMW = sum(n.stations.map(id => st.byId[id].posts)) * MODEL.postKW / 1000;
+    n.withinHourUpperMW = Math.max(...n.hourly.map((_,h) => sum(n.stations.map(id => {
+      const s = st.byId[id];
+      return Math.min(s.posts, s.hourly[h].arrivals * s.serviceHours) * MODEL.postKW / 1000;
+    }))));
     n.desired = Math.max(...n.hourly.map(r => r.desiredMW));
     n.used = Math.max(...n.hourly.map(r => r.gridImportMW));
     n.util = Math.max(...n.hourly.map(r => r.gridLimitMW > EPS ? r.desiredMW / r.gridLimitMW : (r.desiredMW > EPS ? 2 : 0)));
@@ -254,7 +260,8 @@ export function evaluate(ds, { year, scenario = 'base', decisions = [] }) {
   }
   for (const s of stations) {
     const n = nodes[s.node]; s.gridUtil = n.util;
-    s.status = n.status === 'constraint' ? 'constraint' : s.load >= MODEL.loadHigh ? 'high' : s.load >= MODEL.loadMid ? 'mid' : 'low';
+    const load = Math.max(s.load, s.rho);
+    s.status = n.status === 'constraint' ? 'constraint' : load >= MODEL.loadHigh ? 'high' : load >= MODEL.loadMid ? 'mid' : 'low';
   }
   const demand = sum(stations.map(s => s.D)), served = sum(stations.map(s => s.served));
   const posts = sum(stations.map(s => s.posts)), cap = sum(stations.map(s => s.capPosts));
@@ -265,6 +272,7 @@ export function evaluate(ds, { year, scenario = 'base', decisions = [] }) {
     solarUsedKWhDay: sum(Object.values(nodes).map(n => n.solarUsedKWhDay)), storageLossKWhDay: sum(Object.values(nodes).map(n => n.storageLossKWhDay)),
     gridViolations: Object.values(nodes).reduce((a, n) => a + n.hourly.filter(r => r.gridImportMW > r.gridLimitMW + 1e-8).length, 0),
     hourly: Array.from({ length: 24 }, (_, h) => ({ hour: h, arrivals: sum(stations.map(s => s.hourly[h].arrivals)), served: sum(stations.map(s => s.hourly[h].served)), lost: sum(stations.map(s => s.hourly[h].lost)), gridImportMW: sum(Object.values(nodes).map(n => n.hourly[h].gridImportMW)) })) };
+  st.methodology = {service:'hourly-rejection',queue:'counterfactual-erlang-c',power:'hourly-energy',peakIndicator:'hourly mean busy posts at nameplate; connectedMW is the full nameplate bound, not an engineering forecast'};
   return st;
 }
 
@@ -278,5 +286,5 @@ export function decisionsKey(decisions = []) {
 
 /** Кэши привязаны к содержимому входных чисел, а не только к имени сценария. */
 export function datasetKey(ds) {
-  return JSON.stringify({ demandModel:ds.demandModel, demandScale:ds.demandScale, stations: ds.stations.map(s => [s.id, s.posts, s.sessions, s.avgMin, s.sens, s.node, s.mix, s.pos, s.site, s.serviceClass]), nodes: ds.nodes.map(n => [n.id, n.headroom, n.headroomByHour]), model: MODEL, options: OPTIONS });
+  return JSON.stringify({ demandModel:ds.demandModel, demandScale:ds.demandScale, attractivenessExponent:ds.attractivenessExponent, stations: ds.stations.map(s => [s.id, s.posts, s.sessions, s.avgMin, s.sens, s.node, s.mix, s.pos, s.site, s.serviceClass]), nodes: ds.nodes.map(n => [n.id, n.headroom, n.headroomByHour]), model: MODEL, options: OPTIONS });
 }

@@ -24,23 +24,21 @@ export function explain(ds, { station, year, scenario, decisions, options }) {
   const opts = new Set(options);
 
   const indicators = {
-    demand: { v: gRise > 1.5 ? 'высокий ↑' : gRise > 1.15 ? 'растёт ↑' : 'умеренный →', cls: gRise > 1.5 ? 'bad' : gRise > 1.15 ? 'warn' : 'ok', note: `×${num(gRise, 2)} к ${Math.max(year, 2030)}` },
+    demand: { v: '×'+num(growthAt(scenario,Math.max(year,2030)),2), cls: gRise > 1.5 ? 'bad' : gRise > 1.15 ? 'warn' : 'ok', note: `индекс парка к 2026; оценка ${Math.max(year,2030)}` },
     load: { v: pct(st0.load), cls: st0.load >= 0.8 ? 'bad' : st0.load >= 0.5 ? 'warn' : 'ok', note: `${int(st0.D)} сессий/мес` },
     grid: { v: node30.status === 'constraint' ? 'ограничена' : node30.status === 'warn' ? 'на пределе' : 'достаточна', cls: node30.status === 'constraint' ? 'bad' : node30.status === 'warn' ? 'warn' : 'ok', note: `${num(node30.desired, 2)} из ${num(node30.H, 2)} МВт` },
-    queue: { v: st0.queueRisk === 'high' ? 'высокий' : st0.queueRisk === 'mid' ? 'средний' : 'низкий', cls: st0.queueRisk === 'high' ? 'bad' : st0.queueRisk === 'mid' ? 'warn' : 'ok', note: st0.queueUnstable ? 'расчётная перегрузка' : `ожидание ${num(st0.wait)} мин` },
+    queue: { v: st0.queueRisk === 'high' ? 'высокий' : st0.queueRisk === 'mid' ? 'средний' : 'низкий', cls: st0.queueRisk === 'high' ? 'bad' : st0.queueRisk === 'mid' ? 'warn' : 'ok', note: st0.queueUnstable ? 'расчётная перегрузка' : `эталон M/M/c: ${num(st0.wait)} мин` },
     capex: { v: capexLevel === 'high' ? 'высокий' : capexLevel === 'mid' ? 'средний' : 'низкий', cls: capexLevel === 'high' ? 'bad' : capexLevel === 'mid' ? 'warn' : 'ok', note: mln(pkgCapex) },
-    risk: { v: pkg.riskUnder === 'high' ? 'высокий' : pkg.riskUnder === 'mid' ? 'средний' : 'низкий', cls: pkg.riskUnder === 'high' ? 'bad' : pkg.riskUnder === 'mid' ? 'warn' : 'ok', note: 'риск избыточных вложений' },
+    risk: { v: pkg.riskUnder === 'none' ? 'не применим' : pkg.riskUnder === 'high' ? 'высокий' : pkg.riskUnder === 'mid' ? 'средний' : 'низкий', cls: pkg.riskUnder === 'high' ? 'bad' : pkg.riskUnder === 'mid' ? 'warn' : 'ok', note: `низкий спрос, ${pkg.riskYear}; отрицательная ЧПС в ${pkg.lossScenarios} из 3 сценариев` },
   };
 
   const gridYear = (() => { for (const y of [2027, 2030, 2035]) { const s = evaluate(ds, { year: y, scenario, decisions: others }); if (s.nodes[st0.node].status === 'constraint') return y; } return null; })();
   const parts = [];
+  if(pkgKey(options)!==pkgKey(rec.best.options))parts.push(`Вы выбрали пакет, уступающий рекомендации на <em>${num(Math.max(0,rec.best.score-pkg.score),2)} млн ₽ по score</em>. Это оценка выбранной альтернативы, не обоснование её выгодности.`);
   parts.push(`Модельная станция ${station}: средняя загрузка <em>${pct(st0.load)}</em>, ${st0.queueUnstable ? 'в отдельные часы расчётная перегрузка' : 'стационарное приближение очереди применимо'}. Заданный сценарий меняет спрос в <em>${num(gRise, 2)}</em> раза к ${Math.max(year, 2030)}. Это не измерения оператора.`);
   const rob = `Ожидаемый ЧПС по сценариям ${mln(pkg.expNpv)} (демо), максимальное сожаление ${mln(pkg.maxRegret)}.`;
-  parts.push(rob);
-  // Не выдаём общие рекламные формулировки за вывод численного расчёта.
-  parts.splice(1, parts.length - 1,
-    `Для заданного пакета: вложения ${mln(pkgCapex)}, денежная приведённая стоимость в выбранном сценарии ${mln(sc.npv)}. В низком сценарии ${mln(pkg.byScenario.low.npv)}, в высоком ${mln(pkg.byScenario.high.npv)}.`,
-    `Обслуженная доля спроса всей сети в 2030 году: ${pct(sc.net2030.availability)} против ${pct(sc.netB2030.availability)} без этого шага.`, rob);
+  parts.push(`Для заданного пакета: вложения ${mln(pkgCapex)}, денежная ЧПС в выбранном сценарии ${mln(sc.npv)}. В низком сценарии ${mln(pkg.byScenario.low.npv)}, в высоком ${mln(pkg.byScenario.high.npv)}.`,
+    `Обслуженная доля спроса всей сети в 2030: ${pct(sc.net2030.availability)} против ${pct(sc.netB2030.availability)} без этого шага.`,rob);
   const en = 'Результат зависит от неподтверждённых исходных параметров. Рекомендация — выбор среди рассмотренных пакетов, не гарантия доходности.';
 
   // альтернативы
