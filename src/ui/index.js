@@ -65,7 +65,7 @@ function onClick(e) {
     case 'plan-rec': requestPlan(toast); break;
     case 'plan-clear': A.clearDecisions(); break;
     case 'cmp-replay': replaySteps(); break;
-    case 'demo': window.__demo?.start(); break;
+    case 'demo': stopPlay(); window.__demo?.start(); break;
     case 'guide': setState({ guideOpen: !state.guideOpen }); break;
     case 'chain': onChain(arg); break;
     case 'flowtype': { const f = ds.flows.find(x => x.type === arg); if (f) A.selectFlow(f.id); else { A.setView('research'); toast('Этот сегмент учтён в пространственном спросе. Отдельного измеренного маршрута для него нет.'); } break; }

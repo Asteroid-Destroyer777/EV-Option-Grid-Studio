@@ -69,7 +69,7 @@ function init() {
     const observer = new MutationObserver(() => {
       cancelAnimationFrame(pending);
       pending = requestAnimationFrame(() => {
-        if (!el.hidden && motion.enabled) animate(el, [{opacity:.4,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)'}], {duration:420,easing:'cubic-bezier(.22,1,.36,1)'});
+        if (!el.hidden && motion.enabled && !el.closest('#app.demoing')) animate(el, [{opacity:.4,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)'}], {duration:420,easing:'cubic-bezier(.22,1,.36,1)'});
       });
     });
     observer.observe(el, {childList:true});

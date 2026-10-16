@@ -17,11 +17,11 @@ export class Labels {
       this.items.set(id, it);
     }
     it.pos = pos; it.min = min; it.max = max; it.layers = layers; it.order = order;
-    if (html !== undefined && html !== it.last) { it.el.innerHTML = html; it.last = html; }
+    if (html !== undefined && html !== it.last) { it.el.innerHTML = html; it.last = html; it.dimensions=null; }
     return it;
   }
-  setHTML(id, html) { const it = this.items.get(id); if (it && it.last !== html) { it.el.innerHTML = html; it.last = html; } }
-  setClass(id, cls) { const it = this.items.get(id); if (it) it.el.className = 'lbl ' + cls; }
+  setHTML(id, html) { const it = this.items.get(id); if (it && it.last !== html) { it.el.innerHTML = html; it.last = html; it.dimensions=null; } }
+  setClass(id, cls) { const it = this.items.get(id); if (it && it.el.className!=='lbl '+cls) {it.el.className = 'lbl ' + cls;it.dimensions=null;} }
   remove(id) { const it = this.items.get(id); if (it) { it.el.remove(); this.items.delete(id); } }
   refreshBlockers() {
     this.blockers = [];
@@ -36,6 +36,8 @@ export class Labels {
     if ((this._bk++ % 20) === 0) this.refreshBlockers();
     const cam = this.camera, { w, h } = this.world.size;
     const shift = extra.shift || 0;
+    const viewport=w+'|'+h;
+    if(viewport!==this._viewport){this._viewport=viewport;for(const it of this.items.values())it.dimensions=null;}
     const occupied=[];
     for (const it of this.items.values()) {
       const p = typeof it.pos === 'function' ? it.pos() : it.pos;
@@ -50,7 +52,8 @@ export class Labels {
       if (!pod && this.blockers.some(r => x > r.left - 6 && x < r.right + 6 && y > r.top && y < r.bottom + 30)) { it.el.style.display = 'none'; continue; }
       it.el.style.display = '';
       if(pod){
-        const placed=placeLabel(x,y,it.el.offsetWidth||64,it.el.offsetHeight||46,{w,h},occupied,this.blockers);
+        it.dimensions??={w:it.el.offsetWidth||64,h:it.el.offsetHeight||46};
+        const placed=placeLabel(x,y,it.dimensions.w,it.dimensions.h,{w,h},occupied,this.blockers);
         if(!placed){it.el.style.display='none';continue;}
         x=placed.x;y=placed.y;occupied.push(placed.rect);
       }

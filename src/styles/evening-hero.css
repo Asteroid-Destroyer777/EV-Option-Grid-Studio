@@ -61,3 +61,8 @@
 .lens-ring{filter:none}
 /* Moving packets already carry the current: avoid a second dash animation on every cable. */
 .charging-active .energy-plane .current-paths,.charging-active .charging-lead .lead-pulse{animation:none;opacity:0}
+
+/* Paint the cutaway only during inspection, after its illustration is ready. */
+.tesla-layer:not(.scanning) .tesla-section,.tesla-layer:not(.scanning) .section-indicator{display:none}
+.tesla-arrived .tesla-layer,.tesla-arrived .wheel-rotor{will-change:auto}
+.charging-active .charging-wire-signal{filter:none}

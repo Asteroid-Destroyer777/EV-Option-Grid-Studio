@@ -22,10 +22,18 @@ export function weightsFor(scenario, year) {
 }
 
 const memo = new Map();
+export function recommendationKey(ds,{station,year,baseline,scenario='base'}) {
+  const others=baseline.filter(d=>!(d.station===station&&d.year===year)),W=weightsFor(scenario,year);
+  return `${datasetKey(ds)}|${station}@${year}|${W.low}/${W.base}/${W.high}|${decisionsKey(others)}`;
+}
+export function seedRecommendation(ds,query,key,result) {
+  if(key!==recommendationKey(ds,query))return false;
+  memo.set(key,result);return true;
+}
 export function recommend(ds, { station, year, baseline, scenario = 'base' }) {
   const others = baseline.filter(d => !(d.station === station && d.year === year));
   const W = weightsFor(scenario, year);
-  const key = `${datasetKey(ds)}|${station}@${year}|${W.low}/${W.base}/${W.high}|${decisionsKey(others)}`;
+  const key = recommendationKey(ds,{station,year,baseline,scenario});
   const hit = memo.get(key);
   if (hit) return hit;
   const scs = Object.keys(SCENARIOS);

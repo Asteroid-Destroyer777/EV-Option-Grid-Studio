@@ -37,7 +37,7 @@ function render(){
   lastProgress=p;
   const arrive=clamp(p/.34),connect=clamp((p-.36)/.27),charge=clamp((p-.63)/.34);
   if(arrive!==lastArrival){
-    lastArrival=arrive;
+    lastArrival=arrive;root.classList.toggle('tesla-arrived',arrive===1);
     const remaining=startDistance*(1-arrive*arrive*(3-2*arrive));
     car.style.transform=`translateX(${remaining}px)`;
     for(const wheel of wheels)wheel.setAttribute('transform',`rotate(${remaining/58*180/Math.PI} ${wheel.dataset.wheelX} ${wheel.dataset.wheelY})`);
@@ -64,7 +64,29 @@ new IntersectionObserver(entries=>{sceneVisible=entries[0].isIntersecting;if(!sc
 const hit=document.querySelector('[data-tesla-hit]');
 const lensParts=document.querySelectorAll('.section-cut,.section-window,.lens-mechanics,.lens-ring');
 let hovered=false,keyboard=false,keyboardModality=true,pointer=null,lensX=430,lensY=225,sectionFrame=0;
-function paintSection(){sectionFrame=0;if(hovered&&pointer)hovered=Boolean(document.elementFromPoint(pointer.x,pointer.y)?.closest('[data-tesla-hit]'));const active=hovered||keyboard;if(hovered&&pointer){const matrix=car.getScreenCTM();if(matrix){const p=new DOMPoint(pointer.x,pointer.y).matrixTransform(matrix.inverse());lensX=p.x;lensY=p.y;}}car.classList.toggle('scanning',active);hit.setAttribute('aria-pressed',String(active));for(const circle of lensParts){circle.setAttribute('cx',lensX);circle.setAttribute('cy',lensY);}}
+let lensMatrix=null,recheckHit=false,cutawayState='idle';
+const cutaway=document.querySelector('.tesla-cutaway-image');
+function loadCutaway(){
+  if(cutawayState!=='idle')return;
+  cutawayState='loading';hit.setAttribute('aria-busy','true');
+  cutaway.addEventListener('load',()=>{cutawayState='ready';hit.removeAttribute('aria-busy');scheduleSection();},{once:true});
+  cutaway.addEventListener('error',()=>{cutawayState='failed';hit.removeAttribute('aria-busy');scheduleSection();},{once:true});
+  cutaway.setAttribute('href',new URL('../assets/tesla-cutaway-reference.webp',import.meta.url).href);
+}
+function paintSection(){
+  sectionFrame=0;
+  if(recheckHit&&hovered&&pointer)hovered=Boolean(document.elementFromPoint(pointer.x,pointer.y)?.closest('[data-tesla-hit]'));
+  recheckHit=false;
+  const requested=hovered||keyboard;if(requested)loadCutaway();
+  const active=requested&&cutawayState==='ready';
+  if(hovered&&pointer){
+    if(document.querySelector('.hero-photo').getAnimations().length)lensMatrix=null;
+    lensMatrix??=car.getScreenCTM()?.inverse();
+    if(lensMatrix){const p=new DOMPoint(pointer.x,pointer.y).matrixTransform(lensMatrix);lensX=p.x;lensY=p.y;}
+  }
+  car.classList.toggle('scanning',active);hit.setAttribute('aria-pressed',String(requested));
+  if(active)for(const circle of lensParts){circle.setAttribute('cx',lensX);circle.setAttribute('cy',lensY);}
+}
 function scheduleSection(){if(!sectionFrame)sectionFrame=requestAnimationFrame(paintSection);}
 const finePointer=matchMedia('(pointer:fine)');
 document.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||!finePointer.matches)return;const onCar=Boolean(e.target.closest('[data-tesla-hit]'));if(!onCar&&!hovered&&!keyboard)return;keyboard=false;keyboardModality=false;hovered=onCar;pointer=hovered?{x:e.clientX,y:e.clientY}:null;scheduleSection();},{passive:true});
@@ -73,7 +95,7 @@ hit.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')dismissInspec
 document.documentElement.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')dismissInspection();});
 window.addEventListener('blur',dismissInspection);
 document.addEventListener('pointerdown',e=>{keyboardModality=false;if(e.pointerType!=='touch')keyboard=false;if(!e.target.closest('[data-tesla-hit]'))dismissInspection();else scheduleSection();},{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Tab')keyboardModality=true;});
-hit.addEventListener('focus',()=>{keyboard=keyboardModality;scheduleSection();});hit.addEventListener('blur',()=>{keyboard=false;scheduleSection();});
+hit.addEventListener('focus',()=>{if(keyboardModality)keyboard=true;scheduleSection();});hit.addEventListener('blur',()=>{keyboard=false;scheduleSection();});
 hit.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' ','Escape'].includes(e.key)){e.preventDefault();if(e.key==='Escape'){keyboard=false;hovered=false;pointer=null;}else if(e.key==='Enter'||e.key===' '){keyboard=!keyboard;hovered=false;}else {keyboard=true;lensX=clamp(lensX+(e.key==='ArrowLeft'?-35:e.key==='ArrowRight'?35:0),58,798);lensY=clamp(lensY+(e.key==='ArrowUp'?-25:e.key==='ArrowDown'?25:0),90,358);}scheduleSection();}});
 hit.addEventListener('pointerup',e=>{if(e.pointerType==='touch'){keyboard=!keyboard;const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(car.getScreenCTM().inverse());lensX=p.x;lensY=p.y;scheduleSection();}});
-window.addEventListener('scroll',()=>{if(hovered||keyboard)scheduleSection();},{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)dismissInspection();});paintSection();
+window.addEventListener('scroll',()=>{lensMatrix=null;recheckHit=true;if(hovered||keyboard)scheduleSection();},{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)dismissInspection();});window.addEventListener('resize',()=>{lensMatrix=null;recheckHit=true;if(hovered||keyboard)scheduleSection();},{passive:true});paintSection();
