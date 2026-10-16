@@ -1,36 +1,41 @@
-import { setNavigationOpen } from './navigation.js';
-let active = false, returnFocus;
-const background = () => [...document.querySelectorAll('#stage, #ui > :not(#sheet):not(#toast), #beaver-launch')];
-const focusable = el => [...el.querySelectorAll('button:not(:disabled), a[href], input, textarea, select, summary, [tabindex="0"]')].filter(n => n.getClientRects().length && !n.closest('[hidden], [inert], details:not([open]) :not(summary)'));
+import { setNavigationOpen, navigationIsOpen } from './navigation.js';
+let active = false, returnFocus, restoreBackground = [], closeSheet;
+// A sheet replaces the map content; the project navigation remains available.
+const background = () => [...document.querySelectorAll('#stage, #ui > :not(#sheet):not(#toast):not(#rail):not(#nav-toggle):not(#nav-backdrop), #rail > :not(.nav), #beaver-launch')];
+const onKey = e => {
+  if (e.key !== 'Escape' || e.defaultPrevented) return;
+  e.preventDefault(); e.stopPropagation(); closeSheet?.();
+};
 
 export function syncSheetModal(el, close) {
   if (el.hidden) {
     if (!active) return;
     active = false;
-    background().forEach(n => { n.inert = false; });
+    const target = document.activeElement?.closest('#rail .nav button') || returnFocus;
+    for (const {node, inert} of restoreBackground) node.inert = inert;
+    restoreBackground = [];
+    document.removeEventListener('keydown', onKey);
+    document.querySelector('.skip-link')?.setAttribute('href', '#main');
     setNavigationOpen(false, {restore: false});
-    if (returnFocus?.isConnected && !returnFocus.closest('[inert]')) returnFocus.focus();
+    if (target?.isConnected && !target.closest('[inert]')) target.focus();
     else document.getElementById('nav-toggle')?.focus();
     return;
   }
-  el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('tabindex', '-1');
+  el.setAttribute('role', 'region'); el.removeAttribute('aria-modal'); el.setAttribute('tabindex', '-1');
+  document.querySelector('.skip-link')?.setAttribute('href', '#sheet');
   const heading = el.querySelector('h1');
   if (heading) { heading.id = 'sheet-title'; el.setAttribute('aria-labelledby', 'sheet-title'); }
+  closeSheet = close;
+  if (document.activeElement?.closest('#rail .nav button')) returnFocus = document.activeElement;
   if (!active) {
     returnFocus = document.activeElement;
     setNavigationOpen(false, {restore: false});
     active = true;
     // Фокус переносится до inert, чтобы не скрывать текущий фокус от AT.
     el.focus({preventScroll: true});
-    background().forEach(n => { n.inert = true; });
+    restoreBackground = background().map(node => ({node, inert:node.inert}));
+    restoreBackground.forEach(({node}) => { node.inert = true; });
+    document.addEventListener('keydown', onKey);
   }
-  if (!el.contains(document.activeElement)) el.focus({preventScroll: true});
-  el.onkeydown = e => {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); return; }
-    if (e.key !== 'Tab') return;
-    const controls = focusable(el), first = controls[0], last = controls.at(-1);
-    if (!controls.length) { e.preventDefault(); el.focus(); }
-    else if (e.shiftKey && (document.activeElement === first || document.activeElement === el)) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && (document.activeElement === last || document.activeElement === el)) { e.preventDefault(); first.focus(); }
-  };
+  if (!navigationIsOpen() && !el.contains(document.activeElement)) el.focus({preventScroll: true});
 }

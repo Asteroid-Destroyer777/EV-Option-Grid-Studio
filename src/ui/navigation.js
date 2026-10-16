@@ -27,7 +27,7 @@ export function initNavigation() {
     if (!open) return;
     if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); setNavigationOpen(false); }
     if (e.key === 'Tab') {
-      const controls = [...$('#rail').querySelectorAll('button,a,summary')].filter(el => el.getClientRects().length);
+      const controls = [...$('#rail').querySelectorAll('button,a,summary')].filter(el => el.getClientRects().length && !el.closest('[inert]'));
       const first = controls[0], last = controls.at(-1);
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
