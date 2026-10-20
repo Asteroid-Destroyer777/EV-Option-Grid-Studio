@@ -54,9 +54,9 @@ test('v3: assistant keeps network scope without silently selecting the first sta
 test('v3: malformed JSON returns a Russian API error',()=>{
   let status,body;const res={setHeader(){},status(s){status=s;return this;},json(b){body=b;return this;}};handler({method:'POST',body:'{'},res);assert.equal(status,400);assert.match(body.error,/Некорректный JSON/);handler({method:'POST',get body(){throw new Error('Invalid JSON');}},res);assert.match(body.error,/Некорректный JSON/);
 });
-test('v3: Moscow is the single hub, all six outbound routes end in distinct cities on land',()=>{
-  const cities=cityLayout(),routes=cityRoutes(cities);assert.equal(cities[0].name,'МОСКВА');assert.equal(cities.filter(c=>c.hub).length,1);assert.equal(routes.length,6);assert.equal(new Set(cities.map(c=>c.name)).size,7);
-  cities.forEach(c=>assert.equal(terrainAt(c.normal).water,false));routes.forEach((r,i)=>{const first=new T.Vector3(...r.points[0]).normalize(),last=new T.Vector3(...r.points.at(-1)).normalize();near(first.distanceTo(new T.Vector3(...cities[0].normal)),0);near(last.distanceTo(new T.Vector3(...cities[i+1].normal)),0);});
+test('v3: Moscow remains the single capital and every pair of cities is connected',()=>{
+  const cities=cityLayout(),routes=cityRoutes(cities);assert.equal(cities[0].name,'МОСКВА');assert.equal(cities.filter(c=>c.hub).length,1);assert.equal(routes.length,cities.length*(cities.length-1)/2);assert.equal(new Set(cities.map(c=>c.name)).size,7);
+  cities.forEach(c=>assert.equal(terrainAt(c.normal).water,false));routes.forEach((r,i)=>{const first=new T.Vector3(...r.points[0]).normalize(),last=new T.Vector3(...r.points.at(-1)).normalize();near(first.distanceTo(new T.Vector3(...cities[r.from].normal)),0);near(last.distanceTo(new T.Vector3(...cities[r.to].normal)),0);});
 });
 test('v3: cached shadow texture remains in the same local coordinates under arbitrary rotations',()=>{
   const root=new T.Group(),light=new T.DirectionalLight();light.position.set(-2.5,3.5,4.5);root.add(light,light.target);let reference;
