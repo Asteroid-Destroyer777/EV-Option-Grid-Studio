@@ -81,6 +81,19 @@
           "value": "br"
         }
       ]
+    },
+    {
+      "source": "/assets/planet/(.*).glb.br",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "model/gltf-binary"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": "br"
+        }
+      ]
     }
   ],
   "buildCommand": "npm run build",
