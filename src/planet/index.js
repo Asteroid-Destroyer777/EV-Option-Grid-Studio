@@ -13,7 +13,7 @@ function init(){
  const mount=document.createElement('div');mount.className='planet-mount';mount.innerHTML='<div class="planet-loading" role="status"><i></i><span>Планета загружается</span></div><div class="planet-labels" aria-hidden="true"></div>';
  stage.querySelector('.map-turn').replaceChildren(mount);
  stage.querySelector('.map-coordinate').textContent='EV—OPTION GRID / СИСТЕМА СВЯЗЕЙ';
- stage.querySelector('.map-coordinate.bottom').textContent='Москва → города · художественная схема связей';
+ stage.querySelector('.map-coordinate.bottom').textContent='Каждый город связан с каждым · художественная схема';
  section.querySelectorAll('.story-chapter h2 br').forEach(br=>br.after(document.createTextNode(' ')));
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),pause=section.querySelector('.planet-pause');
  let loading,world,visible=false,frame=0,top=0,travel=1,last=0,time=0,progress=0,paused=false,focused=false;
@@ -69,35 +69,45 @@ function makeSpace(scene){
  void main(){vec2 p=(vUv-.5)*3.;float n=noise(p*4.)*.5+noise(p*9.)*.25+noise(p*21.)*.125;float band=exp(-pow((p.y-p.x*.64-.15)*2.9,2.));vec3 col=mix(vec3(.025,.035,.10),vec3(.10,.15,.29),n);gl_FragColor=vec4(col,band*n*.65);}`}));nebula.position.z=-4.5;scene.add(nebula);
 }
 function makeFlow(root,routes){
- const parts=[],heads=[],headTexture=radialTexture(),coldHead=new T.Color('#b2a0ff'),hotHead=new T.Color('#ffb35b');
+ const parts=[],heads=[],positions=new Float32Array(routes.length*3),headGeometry=new T.BufferGeometry();
  routes.forEach((route,index)=>{
-  const curve=new T.CatmullRomCurve3(route.points.map(p=>{const v=new T.Vector3(...p);return v.addScaledVector(v.clone().normalize(),.023);}),false,'centripetal'),g=new T.TubeGeometry(curve,Math.max(48,Math.min(120,route.points.length*2)),.0065,6,false),delay=new Float32Array(g.attributes.position.count);delay.fill((index%6)*.028);g.setAttribute('aDelay',new T.BufferAttribute(delay,1));parts.push(g);
-  const head=new T.Sprite(new T.SpriteMaterial({map:headTexture,color:'#b0f2ff',transparent:true,opacity:.95,blending:T.AdditiveBlending,depthWrite:false}));head.scale.set(.10,.10,1);root.add(head);heads.push({head,curve,delay:(index%6)*.028});
+  const curve=new T.CatmullRomCurve3(route.points.map(p=>{const v=new T.Vector3(...p);return v.addScaledVector(v.clone().normalize(),.023);}),false,'centripetal');
+  const geometry=new T.TubeGeometry(curve,48,.003,4,false),delay=(index*.61803398875)%1,offsets=new Float32Array(geometry.attributes.position.count);offsets.fill(delay);geometry.setAttribute('aDelay',new T.BufferAttribute(offsets,1));parts.push(geometry);heads.push({curve,delay});
  });
- const geometry=mergeGeometries(parts,false);parts.forEach(g=>g.dispose());const uniforms={uProgress:{value:0},uTime:{value:0},uWarm:{value:0}};
- const vertexShader='attribute float aDelay;varying vec2 vUv;varying float vDelay;uniform float uRadius;void main(){vUv=uv;vDelay=aDelay;vec3 p=position+normal*(uRadius-1.)*.0065;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}';
- const fragmentShader=`varying vec2 vUv;varying float vDelay;uniform float uProgress;uniform float uTime;uniform float uHalo;uniform float uWarm;
- void main(){float progress=clamp((uProgress-.10-vDelay)/.32,0.,1.);float connected=1.-smoothstep(progress-.025,progress+.025,vUv.x);float head=fract(uProgress*3.6+uTime*.13-vDelay*1.7);float behind=mod(head-vUv.x+1.,1.);float pulse=exp(-behind*24.)*connected;float charge=exp(-pow((vUv.x-progress)*36.,2.))*step(.01,progress)*step(progress,.99);float intensity=connected*(.44+.08*sin(vUv.x*100.-uTime*1.5))+pulse*2.1+charge*2.8;float warm=smoothstep(.25,.95,vUv.x)*.4+uWarm*.75;vec3 cold=mix(vec3(.08,.28,1.),vec3(.65,.16,1.),vUv.x);vec3 hot=mix(vec3(1.,.10,.04),vec3(1.,.48,.04),vUv.x);vec3 color=mix(cold,hot,clamp(warm,0.,1.));color=mix(color,vec3(1.,.9,.75),min(.5,(pulse+charge)*.25));gl_FragColor=vec4(color,intensity*(uHalo>.5?.24:1.));}`;
- for(const [radius,halo]of [[1,0],[2.7,1],[5,1]])root.add(new T.Mesh(geometry,new T.ShaderMaterial({uniforms:{...uniforms,uRadius:{value:radius},uHalo:{value:halo}},vertexShader,fragmentShader,transparent:true,depthWrite:false,blending:T.AdditiveBlending})));
- return {update(p,time){uniforms.uProgress.value=p;uniforms.uTime.value=time;uniforms.uWarm.value=smooth(.42,.88,p);for(const s of heads){const reveal=clamp((p-.10-s.delay)/.32),front=reveal<.99?reveal:(p*3.6+time*.13-s.delay*1.7)%1;s.head.visible=reveal>.01;s.head.material.color.lerpColors(coldHead,hotHead,clamp(smooth(.42,.88,p)*.8+front*.4));s.curve.getPoint(front,s.head.position);}}};
+ // One draw call for every travelling glow, regardless of the number of links.
+ headGeometry.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));
+ const points=new T.Points(headGeometry,new T.PointsMaterial({map:radialTexture(),color:'#269bff',size:10,sizeAttenuation:false,transparent:true,opacity:.8,depthWrite:false,blending:T.AdditiveBlending}));points.frustumCulled=false;root.add(points);
+ const geometry=mergeGeometries(parts,false);parts.forEach(g=>g.dispose());const uniforms={uProgress:{value:0},uTime:{value:0}};
+ const vertexShader='attribute float aDelay;varying vec2 vUv;varying float vDelay;uniform float uRadius;void main(){vUv=uv;vDelay=aDelay;vec3 p=position+normal*(uRadius-1.)*.003;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}';
+ const fragmentShader=`varying vec2 vUv;varying float vDelay;uniform float uProgress;uniform float uTime;uniform float uHalo;
+ void main(){float head=fract(uProgress*1.8+uTime*.115-vDelay+1.);float behind=mod(head-vUv.x+1.,1.);float pulse=exp(-behind*32.);float intensity=.24+pulse*1.25;vec3 color=mix(vec3(.015,.22,1.),vec3(.08,.62,1.),pulse);gl_FragColor=vec4(color,intensity*(uHalo>.5?.16:.72));}`;
+ // Two batched layers keep the complete graph affordable on small GPUs.
+ for(const [radius,halo]of [[1,0],[3.3,1]])root.add(new T.Mesh(geometry,new T.ShaderMaterial({uniforms:{...uniforms,uRadius:{value:radius},uHalo:{value:halo}},vertexShader,fragmentShader,transparent:true,depthWrite:false,blending:T.AdditiveBlending})));
+ const position=new T.Vector3();
+ return {update(p,time){uniforms.uProgress.value=p;uniforms.uTime.value=time;heads.forEach((head,index)=>{const phase=((p*1.8+time*.115-head.delay)%1+1)%1;head.curve.getPoint(phase,position);position.toArray(positions,index*3);});headGeometry.attributes.position.needsUpdate=true;}};
 }
 async function createPlanet(mount){
- const canvas=document.createElement('canvas');canvas.className='planet-canvas';canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Объёмная планета. В центре Москва с небоскрёбами; от неё идут потоки к шести небольшим городам. При прокрутке сине-фиолетовое свечение сменяется красно-оранжевым. Художественная схема, не карта расчётных данных.');
+ const canvas=document.createElement('canvas');canvas.className='planet-canvas';canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Объёмная вращающаяся планета с Москвой и городами на обеих сторонах. Каждый город соединён с каждым синим световым потоком. Прокрутка показывает планету со всех сторон. Художественная схема, не карта расчётных данных.');
  const renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:innerWidth>700,powerPreference:'default'});renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.setClearColor(0x070a15,0);renderer.shadowMap.enabled=innerWidth>700;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
  const scene=new T.Scene(),camera=new T.OrthographicCamera(-1.4,1.4,1.4,-1.4,.1,30);camera.position.set(0,0,5);camera.lookAt(0,0,0);makeSpace(scene);
  const root=new T.Group();scene.add(root);
  let asset,layout;
  try{[asset,layout]=await Promise.all([new GLTFLoader().loadAsync(new URL('./assets/planet/spherical-planet.glb.br',document.baseURI).href),fetch(new URL('./assets/planet/layout.json',document.baseURI)).then(r=>{if(!r.ok)throw Error('Planet layout unavailable');return r.json();})]);}catch(error){renderer.dispose();throw error;}
  asset.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});root.add(asset.scene);
- const cities=cityLayout();stage.dataset.skyscrapers=String(addCities(root,cities));stage.dataset.cityCount=String(cities.length);
+ const cities=cityLayout(layout);stage.dataset.skyscrapers=String(addCities(root,cities.filter(c=>!c.existing)));stage.dataset.cityCount=String(cities.length);
  scene.add(new T.HemisphereLight('#b7d4ff','#22202a',1.15));
  const key=new T.DirectionalLight('#ffedce',3.0);key.position.set(-2.5,3.5,4.5);key.castShadow=true;key.shadow.mapSize.setScalar(1024);Object.assign(key.shadow.camera,{left:-1.4,right:1.4,top:1.4,bottom:-1.4,near:.5,far:12});key.shadow.bias=-.00012;key.shadow.normalBias=.0015;root.add(key,key.target);const fill=new T.DirectionalLight('#6b9eff',1.4);fill.position.set(3.5,-.4,1);root.add(fill,fill.target);const rim=new T.DirectionalLight('#80cfff',3.1);rim.position.set(1.8,2.5,-3);root.add(rim,rim.target);
  const atmosphere=new T.Mesh(new T.SphereGeometry(1.065,96,64),new T.ShaderMaterial({side:T.BackSide,transparent:true,depthWrite:false,blending:T.AdditiveBlending,vertexShader:'varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',fragmentShader:'varying vec3 n;varying vec3 v;void main(){float f=pow(1.-abs(dot(normalize(n),normalize(v))),4.);gl_FragColor=vec4(.20,.48,1.,f*.34);}'}));root.add(atmosphere);
- const flow=makeFlow(root,cityRoutes(cities)),glow=radialTexture(),stations=[],labelRoot=mount.querySelector('.planet-labels');
+ const routes=cityRoutes(cities);stage.dataset.flowColor='blue';stage.dataset.flowRoutes=String(routes.length);
+ const flow=makeFlow(root,routes),glow=radialTexture(),stations=[],labelRoot=mount.querySelector('.planet-labels');
  for(const [index,s]of cities.entries()){
-  const position=new T.Vector3(...s.position),normal=position.clone().normalize(),group=new T.Group();group.position.copy(position);group.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),normal);root.add(group);
-  const halo=new T.Mesh(new T.PlaneGeometry(.18,.18),new T.MeshBasicMaterial({map:glow,color:'#63cfff',transparent:true,opacity:.14,blending:T.AdditiveBlending,depthWrite:false}));group.add(halo);
-  const ring=new T.Mesh(new T.RingGeometry(.027,.029,40),new T.MeshBasicMaterial({color:'#b5e7ff',transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending}));ring.position.z=.002;group.add(ring);
+  const position=new T.Vector3(...s.position),normal=position.clone().normalize();let halo,ring;
+  // The ready-made towns already contain their own luminous station markers.
+  if(!s.existing){
+   const group=new T.Group();group.position.copy(position);group.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),normal);root.add(group);
+   halo=new T.Mesh(new T.PlaneGeometry(.18,.18),new T.MeshBasicMaterial({map:glow,color:'#63cfff',transparent:true,opacity:.14,blending:T.AdditiveBlending,depthWrite:false}));group.add(halo);
+   ring=new T.Mesh(new T.RingGeometry(.027,.029,40),new T.MeshBasicMaterial({color:'#b5e7ff',transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending}));ring.position.z=.002;group.add(ring);
+  }
   const label=document.createElement('span');label.className='planet-object-label';label.textContent=s.name;label.classList.toggle('planet-capital',s.hub);labelRoot.append(label);stations.push({position,normal,halo,ring,label,index,hub:s.hub});
  }
  const traffic=[],sphere=new T.SphereGeometry(.0025,5,4),carMat=new T.MeshBasicMaterial({color:'#ffdda3'});
@@ -110,7 +120,7 @@ async function createPlanet(mount){
  const baseOrientation=new T.Quaternion().setFromUnitVectors(new T.Vector3(...cities[0].normal),new T.Vector3(0,.35,.93675).normalize()),turn=new T.Quaternion(),angles=new T.Euler();
  renderer.shadowMap.needsUpdate=true;
  function resize(){
-  const r=mount.getBoundingClientRect();width=Math.max(2,r.width);height=Math.max(2,r.height);const aspect=width/height,pad=1.36;
+  const r=mount.getBoundingClientRect();width=Math.max(2,r.width);height=Math.max(2,r.height);const aspect=width/height,pad=1.45;
   camera.left=-pad*Math.max(1,aspect);camera.right=pad*Math.max(1,aspect);camera.top=pad*Math.max(1,1/aspect);camera.bottom=-pad*Math.max(1,1/aspect);camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5,Math.sqrt(1250000/(width*height))));renderer.setSize(width,height,false);
  }
  const ro=new ResizeObserver(resize);ro.observe(mount);resize();if(renderer.compileAsync)await renderer.compileAsync(scene,camera);mount.append(canvas);mount.classList.add('planet-ready');mount.querySelector('.planet-loading').remove();
@@ -119,13 +129,13 @@ async function createPlanet(mount){
   // Terrain, buildings, light and its shadow camera rotate together. The local
   // occlusion is invariant, so one shadow map remains valid at every scroll angle.
   // Refresh its world projection every frame; never reuse a stale world matrix.
-  const rotation=staticMotion?0:Math.sin(time*.055)*.16+(p-.5)*.48;
-  angles.set(staticMotion?0:Math.sin(p*Math.PI*2)*.07,rotation,staticMotion?0:Math.sin(p*Math.PI*2)*.045);
+  const rotation=staticMotion?0:p*Math.PI*2+time*.035;
+  angles.set(staticMotion?0:Math.sin(p*Math.PI*2)*.18,rotation,staticMotion?0:Math.sin(p*Math.PI*2)*.10);
   root.quaternion.copy(turn.setFromEuler(angles)).multiply(baseOrientation);
   syncPlanetShadow(root,key);
-  stage.dataset.shadowMode='co-rotating';stage.dataset.flowWarm=smooth(.42,.88,p).toFixed(3);
+  stage.dataset.shadowMode='co-rotating';
   flow.update(staticMotion?.7:Math.max(.24,p),time);const decision=smooth(.64,.84,p);
-  stations.forEach(s=>{const arrived=smooth(.16+(s.index%6)*.055,.42+(s.index%6)*.055,p);s.halo.material.opacity=.12+arrived*.48;s.halo.scale.setScalar(1+decision*.15+arrived*.04*Math.sin(time*1.4+s.index));s.ring.material.opacity=decision*.8;normalWorld.copy(s.normal).applyQuaternion(root.quaternion);projected.copy(s.position).multiplyScalar(1.07).applyQuaternion(root.quaternion).project(camera);s.label.style.left=(projected.x*.5+.5)*width+'px';s.label.style.top=(-projected.y*.5+.5)*height+'px';s.label.style.opacity=String(normalWorld.z>.3?(s.hub?1:.9):0);s.label.style.transform=s.hub?'translate(-50%,35%)':'translate(-50%,-130%)';});
+  stations.forEach(s=>{const arrived=smooth(.16+(s.index%6)*.055,.42+(s.index%6)*.055,p);if(s.halo){s.halo.material.opacity=.12+arrived*.48;s.halo.scale.setScalar(1+decision*.15+arrived*.04*Math.sin(time*1.4+s.index));s.ring.material.opacity=decision*.8;}normalWorld.copy(s.normal).applyQuaternion(root.quaternion);projected.copy(s.position).multiplyScalar(1.07).applyQuaternion(root.quaternion).project(camera);s.label.style.left=(projected.x*.5+.5)*width+'px';s.label.style.top=(-projected.y*.5+.5)*height+'px';s.label.style.opacity=String(normalWorld.z>.3?(s.hub?1:.9):0);s.label.style.transform=s.hub?'translate(-50%,35%)':'translate(-50%,-130%)';});
   traffic.forEach((car,i)=>{car.curve.getPoint((time*.025+car.offset+p*.18)%1,carPosition);carMatrix.makeTranslation(carPosition.x,carPosition.y,carPosition.z);cars.setMatrixAt(i,carMatrix);});cars.instanceMatrix.needsUpdate=true;renderer.render(scene,camera);stage.dataset.gpuCalls=String(renderer.info.render.calls);stage.dataset.triangles=String(renderer.info.render.triangles);return rotation;
  }};
 }
