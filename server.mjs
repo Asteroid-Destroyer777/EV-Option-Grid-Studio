@@ -52,7 +52,7 @@ http.createServer(async (req, res) => {
     if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
     const data = await readFile(file);
     const cache = !process.argv.includes('--dist') ? 'no-store' : p.startsWith('/build-assets/') ? 'public, max-age=31536000, immutable' : /^\/(assets|data|vendor|fonts)\//.test(p) ? 'public, max-age=3600, must-revalidate' : 'public, max-age=0, must-revalidate';
-    res.writeHead(200, { 'Content-Type': file.endsWith('.json.gz')?'application/json':types[extname(file)] || 'application/octet-stream', ...(file.endsWith('.json.gz')?{'Content-Encoding':'gzip'}:/charger-mesh\.bin(?:-[^/]+)?\.br$/.test(file)?{'Content-Encoding':'br'}:{}), 'Cache-Control': cache });
+    res.writeHead(200, { 'Content-Type': file.endsWith('.json.gz')?'application/json':file.endsWith('.glb.br')?'model/gltf-binary':types[extname(file)] || 'application/octet-stream', ...(file.endsWith('.json.gz')?{'Content-Encoding':'gzip'}:/(?:charger-mesh\.bin(?:-[^/]+)?|\.glb)\.br$/.test(file)?{'Content-Encoding':'br'}:{}), 'Cache-Control': cache });
     res.end(data);
   } catch {
     res.writeHead(404, {'Content-Type':'text/html; charset=utf-8'});

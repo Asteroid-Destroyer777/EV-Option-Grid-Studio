@@ -39,7 +39,7 @@ function render() {
     story.style.setProperty('--story-progress',String(s));
     stage.style.setProperty('--reading-y',`${(s-.5)*-35}px`);
     // Continuous tilt flattens the model as the scroll reaches the plan.
-    $('.map-turn').style.transform=`rotateX(${36*(1-s)}deg) rotateZ(${-20*(1-s)}deg) scale(${1-s*.08})`;
+    if(!stage.classList.contains('planet-stage'))$('.map-turn').style.transform=`rotateX(${36*(1-s)}deg) rotateZ(${-20*(1-s)}deg) scale(${1-s*.08})`;
   }
 }
 function schedule(){if(!frame)frame=requestAnimationFrame(render)}
@@ -69,3 +69,12 @@ if(motion.enabled){
   for(const [i,el] of [$('.site-header'),$('.hero-overline'),$('.hero-small'),$('.hero-bottom')].entries())animate(el,[{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'translateY(0)'}],{duration:700,delay:100+i*140,easing:'cubic-bezier(.22,1,.36,1)'});
 }
 document.querySelectorAll('[data-plan-year]').forEach(button=>button.addEventListener('click',()=>{const step=Number(button.dataset.planYear);if(motion.enabled)window.scrollTo({top:planTop+planTravel*(step+.2)/4,behavior:'smooth'});else setPlan(step);}));setPlan(0);chapter(0);measure();
+
+// Keep the WebGL engine and model off the Tesla scene's initial request path.
+const planetLoader=new IntersectionObserver(entries=>{
+  if(!entries.some(entry=>entry.isIntersecting))return;
+  planetLoader.disconnect();import('./planet/index.js').catch(()=>{
+    stage.dataset.planetState='unavailable';
+    const message=stage.querySelector('[role="status"]');if(message)message.textContent='3D временно недоступно. Остальные разделы работают.';
+  });
+},{rootMargin:'400px 0px'});planetLoader.observe(story);

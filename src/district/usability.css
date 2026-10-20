@@ -16,3 +16,16 @@ form#parameters .note{font-size:12px}form#parameters label,form#parameters summa
 /* Grid items must shrink to the viewport; retain every field on narrow screens. */
 @media(max-width:1050px){.workspace{grid-template-columns:minmax(0,1fr)}.workspace>*,form#parameters{min-width:0}}
 @media(max-width:650px){.fields{grid-template-columns:repeat(2,minmax(0,1fr))}.fields>label,.toolbar>label{min-width:0}form input,form select,form textarea{min-width:0;max-width:100%}.toolbar{min-width:0}.toolbar select{min-width:0}.map-column>details{overflow-wrap:anywhere}}
+
+/* Visible before the first field; using the example remains an explicit choice. */
+form#parameters .demo-quickstart{margin:22px 0 26px;padding:20px;border:2px solid #7686e3;border-radius:8px;background:#e6eaff;color:#26325d}
+.demo-quickstart .demo-kicker{display:block;font:600 11px/1.5 'IBM Plex Mono',monospace;letter-spacing:.05em;text-transform:uppercase;color:#3f50a0}
+form#parameters .demo-quickstart h3{font-size:21px;line-height:1.2;margin:9px 0 10px;color:#253361;letter-spacing:-.025em}
+form#parameters .demo-quickstart p{font-size:12px;line-height:1.6;color:#485779;margin:0 0 16px}
+form#parameters #demo-values{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:56px;padding:14px 16px;border:1px solid #4154d4;border-radius:5px;background:#4154d4;color:#fff;text-align:left;font:600 14px/1.4 Onest,sans-serif;box-shadow:0 4px 12px #3143b529;transition:background .18s,box-shadow .18s}
+form#parameters #demo-values svg{flex:none}
+form#parameters #demo-values:hover{background:#3041ae;box-shadow:0 5px 16px #3143b53d}
+form#parameters #demo-values:active{background:#27368f}
+form#parameters #demo-values:focus-visible{outline:3px solid #2d3d9c;outline-offset:4px}
+form#parameters .demo-quickstart .demo-fill-status{color:#225341;margin:14px 0 0;padding-top:12px;border-top:1px solid #8b9fc2;font-weight:600}
+@media(max-width:650px){form#parameters .demo-quickstart{padding:17px;margin:20px 0 24px}form#parameters #demo-values{font-size:14px}}
