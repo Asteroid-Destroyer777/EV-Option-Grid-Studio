@@ -82,3 +82,17 @@ body.tour-running #beaver-launch{visibility:hidden;pointer-events:none}
 #app .pnl,#app #topbar,#app #chain,#app #dock,#app .legend-3d,#app .lbl.stn,.tour-panel{
   backdrop-filter:none;-webkit-backdrop-filter:none;
 }
+
+/* The global scenario stays operable above every sheet, including mobile. */
+#app #topbar{z-index:8}
+#app #sheet{top:var(--top-h)}
+.demand-stress{position:absolute;top:100%;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:14px;height:52px;min-height:52px;padding:3px 10px;background:#382a46;border-bottom:1px solid #bd9bdd;color:#f7e9ff;font-size:12px}
+.demand-stress[hidden]{display:none}.demand-stress .btn{min-height:44px;padding:3px 12px}
+#app.demand-stressed #sheet{top:calc(var(--top-h) + 52px)}
+#app.demand-stressed #chain{transform:translateY(52px)}
+.analysis-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:16px 0}
+.analysis-controls label{display:grid;gap:6px;font-size:12px}.analysis-controls select{min-height:44px;background:#263444;color:#f2f5fb;border:1px solid #697e93;padding:8px 14px}
+@media(max-width:768px){#app #sheet{padding-top:24px}.demand-stress{font-size:11px;gap:8px}}
+
+@media(min-width:769px){#app.demand-stressed #panel{top:calc(var(--top-h) + 68px)}#app.demand-stressed #restore-panel{transform:translateY(52px)}}
+@media(max-width:768px){#app.demand-stressed #panel{max-height:calc(100dvh - var(--top-h) - 147px)}}

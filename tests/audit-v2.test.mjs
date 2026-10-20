@@ -64,7 +64,8 @@ test('v2: помощник различает нулевой план и отд�
   assert.match(answer.answer,/ЧПС −?[-\d]/);assert.ok(answer.answer.includes(v.npv.toFixed(2).replace('.',',')));
   for(const q of ['Подбери план','Что рекомендуешь строить?','Подготовка площадки','Почему не расширять ZIL-01?'])assert.ok(projectScope.test(q));
   assert.ok(prepareQuestion({question:'Почему не расширять ZIL-01?',calculation:input}).context.optionAnalysis.recommendation);
-  assert.ok(optionContext({...input,decisions:undefined},null,'Варианты').variants.length===8);
+  assert.equal(optionContext({...input,decisions:undefined},null,'Варианты').scope,'network');
+  assert.equal(optionContext({...input,decisions:undefined},'ZIL-01','Варианты').variants.length,8);
 });
 test('v2: подписи вариантов не пересекаются, когда вокруг есть место',()=>{
   const used=[];for(let i=0;i<8;i++){const p=placeLabel(450,350,60,28,{w:1000,h:800},used,[]);assert.ok(p);assert.ok(used.every(r=>!overlaps(r,p.rect)));used.push(p.rect);}

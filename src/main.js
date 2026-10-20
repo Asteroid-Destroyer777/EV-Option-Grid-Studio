@@ -58,7 +58,7 @@ async function boot() {
   $('#gl').addEventListener('webglcontextlost', () => toast('Графическая сцена восстанавливается…', 60000));
   $('#gl').addEventListener('webglcontextrestored', () => toast('Графическая сцена восстановлена.'));
   initInteraction(twin, $('#gl'));
-  const demo = createDemo(twin); window.__demo = demo;
+  const demo = createDemo(twin); A.bind({demo});
 
   function showTeleport() {
     walk.expectUnlock = true; if (document.pointerLockElement) document.exitPointerLock(); else { walk.paused = true; pausebox.classList.add('on'); }
@@ -67,7 +67,7 @@ async function boot() {
     el.innerHTML = `<div class="mn" style="margin-bottom:8px">Телепорт · T</div>${dataset.stations.map(s => `<button class="btn block" data-act="teleport" data-arg="${s.id}">${s.id} · ${s.address}</button>`).join('')}${dataset.nodes.map(n => `<button class="btn block" data-act="teleport" data-arg="${n.id}">ПС ${n.id.replace('SUB-', '')}</button>`).join('')}<button class="btn block" data-act="teleport" data-arg="__close">Закрыть</button>`;
     $('#ui').appendChild(el);
   }
-  window.__teleport = (id) => {
+  const teleport = (id) => {
     const el = $('#tp'); if (el) el.remove();
     if (id !== '__close') {
       const s = dataset.byId[id]; const n = dataset.nodeById[id];
@@ -77,6 +77,9 @@ async function boot() {
     }
     walk.resume();
   };
+
+  A.bind({teleport});
+  if (new URLSearchParams(location.search).get('debug') === '1') Object.assign(window, {__demo:demo, __teleport:teleport});
 
   /* ---------- синхронизация состояния ---------- */
   let shiftKey = '';
@@ -122,7 +125,7 @@ async function boot() {
   }catch{ /* Lazy calculation remains available when Workers are unavailable. */ }
 
 
-  window.__ev = { twin, ds: dataset, state, setState, A, walk, demo, evaluate };
+  if (new URLSearchParams(location.search).get('debug') === '1') window.__ev = { twin, ds: dataset, state, setState, A, walk, demo, evaluate };
 
   let last = performance.now(), depthOn = false;
   function frame(now) {

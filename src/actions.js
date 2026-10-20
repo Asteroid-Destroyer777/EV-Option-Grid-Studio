@@ -4,7 +4,7 @@ import { dataset as ds } from './data/dataset.js';
 import { evaluate } from './simulation/engine.js';
 import { recommend, pkgKey } from './simulation/recommend.js';
 import { recommendedPlan } from './simulation/policies.js';
-import { OPTIONS, EXCLUSIVE, YEARS } from './simulation/params.js';
+import { OPTIONS, EXCLUSIVE, YEARS, MODEL } from './simulation/params.js';
 import { nearestRoad } from './scene/roads.js';
 
 export const ctx = { twin: null, walk: null, toast: () => {}, ui: null };
@@ -85,7 +85,7 @@ export function clearSelection() { setState({ panelHidden:true, selectedStation:
 
 /* ---------- инвестиционные решения ---------- */
 export function setPackage(station, year, opts) {
-  if(year===2035&&opts.length){ctx.toast('2035 — год оценки результата. Для нового решения выберите 2027 или 2030.');return;}
+  if(!MODEL.decisionYears.includes(year)&&opts.length){ctx.toast('Для инвестиционного решения выберите 2027 или 2030. Остальные годы показывают состояние сети.');return;}
   const others = state.decisions.filter(d => !(d.station === station && d.year === year));
   const decisions = opts.length ? [...others, { station, year, options: [...opts] }] : others;
   setState({ decisions, investmentOption: opts.length ? opts[opts.length - 1] : null, focusOption: opts.length ? opts[opts.length - 1] : null });

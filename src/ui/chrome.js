@@ -2,7 +2,7 @@
 import { state } from '../state.js';
 import { YEARS, SCENARIOS, OPTIONS, MODEL, USER_TYPES } from '../simulation/params.js';
 import { dataset as ds } from '../data/dataset.js';
-import { recommendation } from '../actions.js';
+import { setYear, recommendation } from '../actions.js';
 import { int, num, pct, mln, TAG, ICONS, pkText } from './format.js';
 
 const $ = (s) => document.querySelector(s);
@@ -55,6 +55,7 @@ export function renderTopbar() {
         <div class="tl-thumb" id="tlthumb" role="slider" tabindex="0" aria-label="Год сценария" aria-valuemin="2026" aria-valuemax="2035" aria-valuenow="2026"></div>
       </div>
     </div>
+    <div id="demand-stress" class="demand-stress" role="status" hidden></div>
     <div class="scn">
       <div class="mn"><span>Сценарий</span><span id="scnnote">${TAG.scn}</span></div>
       <div class="seg" id="scnseg">${Object.values(SCENARIOS).map(s => `<button data-act="scenario" data-arg="${s.id}">${s.short}</button>`).join('')}</div>
@@ -65,18 +66,21 @@ export function renderTopbar() {
 function bindTimelineDrag() {
   const track = $('#tlthumb'), tl = $('#tltrack');
   let drag = false;
-  document.querySelectorAll('.tl-y').forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.__act?.setYear(+el.dataset.arg); } }));
-  track.addEventListener('keydown', e => { if (!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return; e.preventDefault(); const i=YEARS.indexOf(state.year),n=e.key==='Home'?0:e.key==='End'?YEARS.length-1:Math.max(0,Math.min(YEARS.length-1,i+(e.key==='ArrowRight'?1:-1))); window.__act?.setYear(YEARS[n]); });
+  document.querySelectorAll('.tl-y').forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setYear(+el.dataset.arg); } }));
+  track.addEventListener('keydown', e => { if (!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return; e.preventDefault(); const i=YEARS.indexOf(state.year),n=e.key==='Home'?0:e.key==='End'?YEARS.length-1:Math.max(0,Math.min(YEARS.length-1,i+(e.key==='ArrowRight'?1:-1))); setYear(YEARS[n]); });
   const xToYear = (cx) => { const r = tl.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (cx - r.left) / r.width)); const i = Math.round(t * (YEARS.length - 1)); return YEARS[i]; };
-  const move = (e) => { if (!drag) return; const r = tl.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); track.style.left = t * 100 + '%'; $('#tlfill').style.width = t * 100 + '%'; const y = xToYear(e.clientX); if (y !== state.year) window.__act?.setYear(y); };
+  const move = (e) => { if (!drag) return; const r = tl.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); track.style.left = t * 100 + '%'; $('#tlfill').style.width = t * 100 + '%'; const y = xToYear(e.clientX); if (y !== state.year) setYear(y); };
   track.addEventListener('pointerdown', e => { drag = true; track.classList.add('drag'); track.setPointerCapture(e.pointerId); });
   track.addEventListener('pointermove', move);
   const up = (e) => { if (!drag) return; drag = false; track.classList.remove('drag'); updateTimeline(); };
   track.addEventListener('pointerup', up); track.addEventListener('pointercancel', up);
-  tl.addEventListener('pointerdown', e => { if (e.target === track) return; const y = xToYear(e.clientX); window.__act?.setYear(y); });
+  tl.addEventListener('pointerdown', e => { if (e.target === track) return; const y = xToYear(e.clientX); setYear(y); });
 }
 
 export function updateTimeline() {
+  const stress=$('#demand-stress'),scale=ds.demandScale||1;document.getElementById('app')?.classList.toggle('demand-stressed',scale!==1);
+  if(stress&&stress.dataset.scale!==String(scale)){stress.dataset.scale=String(scale);stress.hidden=scale===1;stress.innerHTML=scale===1?'':`<strong>Стресс-тест: спрос ×${num(scale,1)}</strong><button data-act="reset-scale" class="btn">Сбросить</button>`;}
+
   const i = YEARS.indexOf(state.year); const t = (i / (YEARS.length - 1)) * 100;
   const th = $('#tlthumb'); if (!th || th.classList.contains('drag')) return;
   th.setAttribute('aria-valuenow', String(state.year));
@@ -110,8 +114,8 @@ export function updateLegend() {
   const l = state.activeLayer;
   let h = `<div class="mn">Загрузка ЭЗС · максимум средней и пиковой</div>
     <div class="lr"><i style="background:var(--st-low)"></i>&lt; 50% · низкая</div>
-    <div class="lr"><i style="background:var(--st-mid)"></i>50–80% · нормальная</div>
-    <div class="lr"><i style="background:var(--st-high)"></i>&gt; 80% · высокая</div>
+    <div class="lr"><i style="background:var(--st-mid)"></i>50–&lt;80% · нормальная</div>
+    <div class="lr"><i style="background:var(--st-high)"></i>≥ 80% · высокая</div>
     <div class="lr"><i class="sq"></i>сетевое ограничение</div>`;
   if (l === 'demand' || l === 'city') h += `<div class="mn" style="margin-top:8px">Транспортный спрос</div><div class="flowleg">${['private_ev', 'corporate', 'transit'].map(k => { const t = USER_TYPES[k]; return `<span data-act="flowtype" data-arg="${k}" style="--c:${t.color}"><i></i>${t.name}</span>`; }).join('')}</div>`;
   if (l === 'grid') h += `<div class="mn" style="margin-top:8px">Энергосистема</div><div class="lr"><i style="background:var(--cyan)"></i>допустимая мощность зарядки</div><div class="lr"><i style="background:var(--st-high)"></i>желаемая &gt; допустимой</div>`;

@@ -22,7 +22,7 @@ http.createServer(async (req, res) => {
   if(req.url==='/api/assistant'){
     res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');
     if(req.method!=='POST'){res.writeHead(405);return res.end(JSON.stringify({error:'Используйте POST.'}));}
-    try{if(!String(req.headers['content-type']||'').includes('application/json'))throw new Error('Нужен JSON.');if(req.headers.origin&&new URL(req.headers.origin).host!==req.headers.host)throw new Error('Недопустимый источник запроса.');limitAssistant(req.socket.remoteAddress||'local');let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>200000)throw new Error('Запрос слишком большой.');raw+=chunk;}const result=await assistantResponse(JSON.parse(raw));res.writeHead(200);res.end(JSON.stringify(result));}catch(e){res.writeHead(400);res.end(JSON.stringify({error:e.message}));}return;
+    try{if(!String(req.headers['content-type']||'').includes('application/json'))throw new Error('Нужен JSON.');if(req.headers.origin&&new URL(req.headers.origin).host!==req.headers.host)throw new Error('Недопустимый источник запроса.');limitAssistant(req.socket.remoteAddress||'local');let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>200000)throw new Error('Запрос слишком большой.');raw+=chunk;}const result=await assistantResponse(JSON.parse(raw));res.writeHead(200);res.end(JSON.stringify(result));}catch(e){res.writeHead(400);res.end(JSON.stringify({error:e instanceof SyntaxError?'Некорректный JSON запроса.':e.message}));}return;
   }
   if(req.url==='/api/district'){
     res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');
@@ -30,7 +30,7 @@ http.createServer(async (req, res) => {
     try{let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>10000000)throw new Error('Запрос слишком большой.');raw+=chunk;}
       const data=JSON.parse(raw),result=data.action==='load'?await loadArea(data.bounds):data.action==='rank'?rankDistrict(data.input,data.options):calculateDistrict(data.input);
       res.writeHead(200);res.end(JSON.stringify(result));
-    }catch(e){res.writeHead(400);res.end(JSON.stringify({error:e.message}));}return;
+    }catch(e){res.writeHead(400);res.end(JSON.stringify({error:e instanceof SyntaxError?'Некорректный JSON запроса.':e.message}));}return;
   }
   if (req.url === '/api/calculate') {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -40,7 +40,7 @@ http.createServer(async (req, res) => {
       for await (const chunk of req) { size += chunk.length; if (size > 250000) throw new Error('Запрос слишком большой.'); raw += chunk; }
       const result = calculateRequest(JSON.parse(raw));
       res.writeHead(200); return res.end(JSON.stringify(result));
-    } catch (error) { res.writeHead(400); return res.end(JSON.stringify({ error: error.message })); }
+    } catch (error) { res.writeHead(400); return res.end(JSON.stringify({ error: error instanceof SyntaxError ? 'Некорректный JSON запроса.' : error.message })); }
   }
   try {
     let p = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');

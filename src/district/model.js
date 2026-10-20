@@ -1,3 +1,4 @@
+import {chargingPower} from './charging-power.js';
 import {pointInPolygon,validatePolygon} from './geography.js';
 // Независимый районный скрининг. Не изменяет параметры и состояние 3D-полигона.
 const check=(ok,message)=>{if(!ok)throw new Error(message);};
@@ -32,8 +33,8 @@ export function prepareArea(elements,bounds,source={}) {
 
     if(t.amenity!=='charging_station')continue;
     if(['private','no'].includes(t.access)||t.disused==='yes'){excluded++;continue;}
-    const capacity=Number(t.capacity),power=Object.entries(t).filter(([k])=>k.endsWith(':output')).map(([,v])=>/^\s*\d+(\.\d+)?\s*kW\s*$/i.test(v)?parseFloat(v):null).filter(v=>v>0);
-    stations.push({id,lat:p.lat,lon:p.lon,name:String(t.name||t.brand||t.operator||'Зарядный объект').slice(0,200),posts:Number.isInteger(capacity)&&capacity>0&&capacity<=200?capacity:null,kw:power.length?Math.max(...power):null,url:`https://www.openstreetmap.org/${id}`});
+    const capacity=Number(t.capacity),power=chargingPower(t);
+    stations.push({id,lat:p.lat,lon:p.lon,name:String(t.name||t.brand||t.operator||'Зарядный объект').slice(0,200),posts:Number.isInteger(capacity)&&capacity>0&&capacity<=200?capacity:null,...power,url:`https://www.openstreetmap.org/${id}`});
   }
   check(stations.length<=200,'Более 200 зарядных объектов: уменьшите район.');
   return {bounds,areaKm2,cells,stations,features,candidates,footprints,water,buildings,excluded,source,weighting:buildings?'1 + число зданий в ячейке (эвристика, не население)':'Равномерно: зданий нет в загруженных данных'};
@@ -56,12 +57,12 @@ export function validateInput(input){
   check(typeof p.demandSource==='string'&&p.demandSource.trim().length>=3&&p.demandSource.length<=1000,'Укажите источник или явно напишите, что спрос — допущение.');
   check(input.acceptAssumptions===true,'Подтвердите сценарный характер неподтверждённых параметров.');
 }
-function profile(type){const a=Array.from({length:24},(_,h)=>type==='flat'?1:type==='evening'?(h>=17&&h<22?3:1):((h>=7&&h<10)||(h>=17&&h<20)?3:1));const total=sum(a);return a.map(v=>v/total);}
+export function hourlyProfile(type){const a=Array.from({length:24},(_,h)=>type==='flat'?1:type==='evening'?(h<6?.22:h<9?.75:h<17?1:h<22?3:.55):(h<6?.2:(h>=7&&h<10)||(h>=17&&h<20)?3:h>=22?.45:1));const total=sum(a);return a.map(v=>v/total);}
 function allocate(area,stations,p){const counts=stations.map(()=>0),total=sum(area.cells.map(c=>c.weight));let outside=0;
   for(const cell of area.cells){const w=stations.map(s=>s.posts**.7*(s.attractiveness??1)*Math.exp(-distance(cell,s)/p.radiusM)),den=sum(w)+p.outsideWeight;outside+=cell.weight/total*p.outsideWeight/den;for(let i=0;i<w.length;i++)counts[i]+=cell.weight/total*w[i]/den;}
   return {shares:counts,outside};
 }
-function day(stations,allocation,p,demand){const fractions=profile(p.profile);let served=0,lost=0;
+function day(stations,allocation,p,demand){const fractions=hourlyProfile(p.profile);let served=0,lost=0;
   const results=stations.map((s,i)=>{const power=Math.min(s.posts*s.kw,s.gridKW??s.posts*s.kw),capacity=Math.min(s.posts*60/p.sessionMinutes,power/p.energy),offered=demand*allocation.shares[i];
     const hours=fractions.map((v,h)=>{const arrivals=offered*v,completed=Math.min(arrivals,capacity);return {hour:h,arrivals,served:completed,lost:arrivals-completed,energyKWh:completed*p.energy,powerLimitKW:power};});
     const done=sum(hours.map(h=>h.served));served+=done;lost+=offered-done;

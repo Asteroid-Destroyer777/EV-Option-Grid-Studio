@@ -1,3 +1,4 @@
+import {RESEARCH} from '../src/data/research-core.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluate, profileFor, collectAssets, queueMetrics } from '../src/simulation/engine.js';
@@ -8,7 +9,7 @@ import { MODEL, USER_TYPES } from '../src/simulation/params.js';
 import { STATION_DEFS, NODE_DEFS } from '../src/data/dataset.js';
 const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a-b) < tol, `${a} != ${b}`);
 function fixture() {
-  const stations = STATION_DEFS.map(s => ({ ...structuredClone(s), pos: { x:(s.lon-37.65)*62500, z:(55.71-s.lat)*111000 }, site:null }));
+  const stations = STATION_DEFS.map(s => ({ ...structuredClone(s), sessions:RESEARCH.district.stations.find(r=>r.id===s.id).sessions,avgMin:RESEARCH.energy.sessionMinutes,sens:1, pos: { x:(s.lon-37.65)*62500, z:(55.71-s.lat)*111000 }, site:null }));
   return { stations, nodes:structuredClone(NODE_DEFS), byId:Object.fromEntries(stations.map(s=>[s.id,s])) };
 }
 const decision = (options, year=2027) => [{ station:'ZIL-01', year, options }];

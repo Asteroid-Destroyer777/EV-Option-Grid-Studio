@@ -93,7 +93,7 @@ function stateFor(ds, year, scenario, decisions) {
     const posts = Math.max(0, Math.floor(def.posts + (addPosts[def.id] || 0)));
     const growth = Math.max(0, 1 + (F - 1) * (def.sens ?? 1));
     const { mix, shares } = demandProfile(def);
-    const serviceHours = Math.max((def.avgMin || 48) / 60, MODEL.kwhPerSession / MODEL.postKW);
+    const serviceHours = Math.max((ds.demandModel === 'huff-zil-v1' ? MODEL.kwhPerSession / MODEL.peakKWPerBusyPost * 60 : def.avgMin || 48) / 60, MODEL.kwhPerSession / MODEL.postKW);
     const capHourly = posts / serviceHours;
     const D0 = nonnegative(def.sessions) * growth;
     const s = { id: def.id, def, isNew: !!def.isNew, anchor: def.isNew ? def.anchor : null, node: def.node, posts, basePosts: def.posts,
@@ -235,7 +235,7 @@ export function evaluate(ds, { year, scenario = 'base', decisions = [] }) {
     s.queueCars = Math.ceil(Math.min(99, Math.max(...s.hourly.map(r => r.queueCars))));
     s.queueUnstable = s.hourly.some(r => !r.queueStable);
     s.waitCapped = s.hourly.some(r => r.waitCapped);
-    s.queueRisk = s.rho < 0.7 ? 'low' : s.rho < 0.88 ? 'mid' : 'high';
+    s.queueRisk = s.rho < MODEL.loadMid ? 'low' : s.rho < MODEL.loadHigh ? 'mid' : 'high';
     s.limiter = s.unserved > EPS ? (s.throttle < 1 - EPS ? 'power' : 'posts') : 'none';
     s.powerMW = Math.max(...s.hourly.map(r => r.powerMW));
     s.segmentDemand = Object.fromEntries(TYPES.map(t => [t, s.D * s.mix[t]]));

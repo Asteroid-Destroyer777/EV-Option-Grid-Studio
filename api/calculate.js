@@ -5,7 +5,8 @@ export default function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Используйте POST.' });
   try {
     const input = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    if (!input || typeof input !== 'object') return res.status(400).json({error:'Ожидается объект запроса.'});
     if (JSON.stringify(input).length > 250000) return res.status(413).json({ error: 'Запрос слишком большой.' });
     return res.status(200).json(calculateRequest(input));
-  } catch (error) { return res.status(400).json({ error: error.message }); }
+  } catch (error) { return res.status(400).json({ error: (error instanceof SyntaxError || error.message === 'Invalid JSON') ? 'Некорректный JSON запроса.' : error.message }); }
 }

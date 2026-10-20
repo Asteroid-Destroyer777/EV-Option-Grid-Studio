@@ -53,3 +53,6 @@
  .planet-pause{display:none}
 }
 @media(max-width:700px) and (prefers-reduced-motion:reduce){#system .planet-stage{width:100%;max-width:390px}}
+
+.planet-capital{font-size:14px;font-weight:600;letter-spacing:.16em;padding:7px 12px;color:#fff;border-color:#adcbff;background:#132847ee;box-shadow:0 0 22px #779dff35}
+@media(max-width:700px){.planet-capital{font-size:10px;padding:4px 7px}}

@@ -22,7 +22,7 @@ export const STATION_DEFS = [
 // Значения спроса пересчитаны из исходной геометрии по алгоритму исследования.
 for (const s of STATION_DEFS) {
   const r=RESEARCH.district.stations.find(d=>d.id===s.id);
-  s.sessions=r.sessions; s.avgMin=r.avgMin; s.sens=1;
+
   s.mix={private_ev:r.mix.private,corporate:r.mix.corporate,transit:r.mix.transit,ebus:0,taxi:0,municipal:0};
   s.provenance='Оценка Хаффа, не телеметрия';
 }

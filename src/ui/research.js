@@ -20,13 +20,13 @@ export async function loadRegistry() {
 export function setDemandScale(value) {
   const scale=Number(value); if(!DEMAND_SCALES.includes(scale))return;
   ds.demandScale=scale; clearEconCache();clearRecommendCache();
-  setState({decisions:[...state.decisions]});
+  setState({decisions:[...state.decisions],planMessage:null});
 }
 export function setGridCase(kind) {
   if(!['base','limited'].includes(kind))return;
   ds.nodes=gridCaseNodes(ds.nodes,kind);ds.nodeById=Object.fromEntries(ds.nodes.map(n=>[n.id,n]));
   clearEconCache();clearRecommendCache();
-  setState({gridCase:kind,decisions:[...state.decisions]});
+  setState({gridCase:kind,decisions:[...state.decisions],planMessage:null});
 }
 const table=(headers,rows)=>`<div class="audit-table"><table class="tbl"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 const section=(title,body)=>`<section class="sec"><h3>${title}</h3>${body}</section>`;
@@ -61,7 +61,7 @@ export function researchSheet() {
     section('Возможные совпадения объектов',table(['Наш ориентир','Объект OSM','Расстояние'],pairs.map(p=>[esc(p.station),esc(p.competitor)+' · '+esc(p.operator),num(p.metres,1)+' м']))+`<p class="note">Близость сама по себе не доказывает дубль. До проверки идентификатора и оператора эти пары остаются отдельными объектами модели и могут завышать конкуренцию. Автоматическое удаление неподтверждённых объектов изменило бы калибровку.</p>`)+
     section('5. Где исследование не прошло проверку',`<div class="note warn">Итоговый файл validation.json: показатель различения реальных и контрольных площадок ${num(R.city.holdoutCheck.AUC,3)} при случайном ориентире 0,5. Этот тест не пройден. README архива приводит другое, более раннее число — мы показываем итоговый файл. Доля быстрых станций с модельной загрузкой выше 20% — ${pct(R.city.allocationCheck['получилось_у_модели'],1)}, а в пересказе ответов заказчика — около 10%. Это не подтверждённая точность прогноза.</div><p class="note">Прогноз «через 1, 3, 5 лет» отнесён к 2027, 2029, 2031 годам относительно 2026 года. В архиве те же точки ошибочно растянуты до 2035. После 2031 здесь принят постоянный индекс — явно обозначенное допущение. Модель всего города и работающий почасовой районный расчёт — разные уровни; их показатели не смешиваются.</p>`)+
     section('6. Реестр открытой карты',`<p class="note">Число постов и мощность могут быть восстановлены предположением при отсутствии тега — это отмечено в каждой строке. Отнесение к «быстрым» по порогу 50 кВт не доказывает тип тока. Бренд «Энергия Москвы» не означает принадлежность Росатому. Оценки спроса сохранены только для 60 строк исходного отчёта; прочие значения не выдумываются.</p><div class="research-registry">`+(registry ? table(['Объект / бренд','Карта','Мощность, кВт','Посты','Сессии/мес — модель'],registry.map(s=>[
-      esc(s.name||s.brand),s.osmEvidence[0]?`<a target="_blank" rel="noopener noreferrer" href="${s.osmEvidence[0].url}">Объект ↗</a>`:mapLink(s.lat,s.lon),`${int(s.kw)} · ${s.powerHasTag?'есть тег':'допущение'}`,`${s.posts} · ${s.postsHasTag?'есть тег':'допущение'}`,s.sessions_per_month==null?'Нет в отчёте':int(s.sessions_per_month)
+      esc(s.name||s.brand),s.osmEvidence[0]?`<a target="_blank" rel="noopener noreferrer" href="${s.osmEvidence[0].url}">Объект ↗</a>`:mapLink(s.lat,s.lon),`${int(s.kw)} · ${s.powerHasTag?'есть тег':s.powerAssumption||'допущение'}`,`${s.posts} · ${s.postsHasTag?'есть тег':s.powerAssumption||'допущение'}`,s.sessions_per_month==null?'Нет в отчёте':int(s.sessions_per_month)
     ])) : '<p class="note" role="status">Реестр загружается отдельно от расчёта. <button class="btn" data-act="registry-retry">Повторить загрузку</button></p>')+`</div>`)+
     section('7. Районные зоны для дальнейшей проверки',`<p class="note">Список из исследования для новой станции на два поста. Значения — оценки до почасовой проверки, а не обещание результата. Земля, подъезд, подключение и конкуренты требуют обследования. Нельзя складывать потенциал отдельных площадок без повторного расчёта каннибализации.</p>`+table(['Ориентир','Карта','Потенциал, сессий/мес','Из своей сети','Чистый прирост'],R.district.candidates.slice(0,10).map(c=>[esc(c.landmarks?.[0]||'Зона поиска'),mapLink(c.lat,c.lon),int(c.sessions_per_month),int(c.cannibalized_from_own),int(c.net_gain)])));
 }

@@ -16,6 +16,7 @@ export const MODEL = {
   peakKWPerBusyPost: RESEARCH.energy.averageKW, // 55 кВт — предположение исследования, не измеренная мощность
   kwhPerSession: RESEARCH.energy.kwhPerSession, // ≈25,2 кВт·ч, производная округлённых публичных агрегатов
   ...FINANCIAL_DEFAULTS,
+  decisionYears: [...PLANNING_DEFAULTS.decisionYears],
   planMinScore: PLANNING_DEFAULTS.minimumScore,
   planMaxStations: PLANNING_DEFAULTS.maxStationsPerStep,
   residual: 0.40,              // остаточная стоимость активов на конец горизонта, доля Вложения (демо)
