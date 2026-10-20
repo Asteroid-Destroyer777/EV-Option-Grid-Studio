@@ -18,11 +18,12 @@ const $ = (s) => document.querySelector(s);
 let playTimer = null, toastTimer = null;
 
 export function initUI() {
-  window.__types = USER_TYPES;
+  if (new URLSearchParams(location.search).get('debug') === '1') window.__types = USER_TYPES;
   renderRail(); renderTopbar(); renderDock(); renderLegend(); renderHud();
   initNavigation();
-  window.__act = A;
+  if (new URLSearchParams(location.search).get('debug') === '1') window.__act = A;
   document.addEventListener('click', onClick);
+  document.addEventListener('change',e=>{if(e.target.matches('[data-analysis-station]'))setState({analysisStation:e.target.value});});
   document.addEventListener('mouseover', e => { const h = e.target.closest?.('[data-hover]'); if (h) A.hoverOption(h.dataset.hover); });
   document.addEventListener('mouseout', e => { const h = e.target.closest?.('[data-hover]'); if (h && !h.contains(e.relatedTarget)) A.hoverOption(null); });
   document.addEventListener('keydown', onKey);
@@ -36,12 +37,13 @@ function onClick(e) {
     case 'analysis-run': requestAnalysis(arg,toast); break;
     case 'analysis-cancel': cancelAnalysis(arg); break;
     case 'investment-case':
-      setDemandScale(1.5); A.setYear(2027); A.setScenario('high');
+      setDemandScale(1.5); A.setYear(2027);
       A.selectStation('ZIL-01'); A.setLayer('investment');
       toast('Тест чувствительности: спрос ×1,5. Исходные тарифы, сметы и текущий план сохранены.', 6000);
       break;
     case 'grid-case': setGridCase(arg); break;
     case 'research-scale': setDemandScale(arg); break;
+    case 'reset-scale': setDemandScale(1); break;
     case 'export-audit': exportAudit().catch(() => toast('Не удалось загрузить реестр для экспорта. Повторите попытку.')); break;
     case 'registry-retry': updateUI(new Set(['view'])); break;
     case 'verify-server': verifyServer(); break;
@@ -65,13 +67,13 @@ function onClick(e) {
     case 'plan-rec': requestPlan(toast); break;
     case 'plan-clear': A.clearDecisions(); break;
     case 'cmp-replay': replaySteps(); break;
-    case 'demo': stopPlay(); window.__demo?.start(); break;
+    case 'demo': stopPlay(); A.ctx.demo?.start(); break;
     case 'guide': setState({ guideOpen: !state.guideOpen }); break;
     case 'chain': onChain(arg); break;
     case 'flowtype': { const f = ds.flows.find(x => x.type === arg); if (f) A.selectFlow(f.id); else { A.setView('research'); toast('Этот сегмент учтён в пространственном спросе. Отдельного измеренного маршрута для него нет.'); } break; }
     case 'guide-do': guideDo(+arg); break;
     case 'guide-close': setState({ guideOpen: false }); break;
-    case 'teleport': window.__teleport?.(arg); break;
+    case 'teleport': A.ctx.teleport?.(arg); break;
     case 'toast-x': break;
   }
 }
@@ -97,7 +99,7 @@ function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (state.view !== 'map' || navigationIsOpen()) return;
   const k = e.key;
-  if (state.demo) { if (k === 'Escape') window.__demo?.skip(); return; }
+  if (state.demo) { if (k === 'Escape') A.ctx.demo?.skip(); return; }
   if (['1', '2', '3', '4', '5'].includes(k)) { A.setLayer(['city', 'demand', 'grid', 'investment', 'future'][+k - 1]); return; }
   if (k === '6') { toggleWalk(); return; }
   if (state.walkMode) return;
@@ -163,7 +165,7 @@ export function updateUI(changed) {
   updateTimeline(); updateDock(); updateLegend();
   renderChain();
   if (has('panelHidden','selectedStation', 'selectedNode', 'selectedFlow', 'selectedSite', 'panelTab', 'view', 'year', 'scenario', 'decisions', 'activeLayer', 'networkState', 'walkMode')) renderPanel();
-  if (has('analysisTick','planBusy','planMessage','view', 'year', 'scenario', 'decisions', 'selectedStation', 'networkState')) renderSheet();
+  if (has('analysisStation','analysisTick','planBusy','planMessage','view', 'year', 'scenario', 'decisions', 'selectedStation', 'networkState')) renderSheet();
   if (has('guideOpen', 'year', 'scenario', 'decisions', 'activeLayer', 'selectedStation', 'panelTab', 'walkMode', 'focusOption')) renderGuide();
   if (has('decisions', 'scenario')) clearCompareCache();
 }

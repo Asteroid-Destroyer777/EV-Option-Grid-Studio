@@ -1,5 +1,5 @@
 import {gridCaseNodes} from './simulation/grid-case.js';
-import { YEARS, SCENARIOS, OPTIONS, EXCLUSIVE } from './simulation/params.js';
+import { YEARS, SCENARIOS, OPTIONS, EXCLUSIVE, MODEL } from './simulation/params.js';
 import { STATION_DEFS, NODE_DEFS } from './data/dataset.js';
 
 const stations = new Set(STATION_DEFS.map(s => s.id));
@@ -30,7 +30,7 @@ export function readURL(search) {
     patch.decisions = plan.flatMap(d => {
       if (!Array.isArray(d) || d.length !== 3) return [];
       const [station, year, options] = d, key = station + ':' + year;
-      if (!stations.has(station) || !YEARS.includes(year) || seen.has(key) || !Array.isArray(options) || !options.length || options.length > 5 || new Set(options).size !== options.length || !options.every(o => typeof o === 'string' && Object.hasOwn(OPTIONS, o)) || (options.length > 1 && options.some(o => EXCLUSIVE.includes(o)))) return [];
+      if (!stations.has(station) || !MODEL.decisionYears.includes(year) || seen.has(key) || !Array.isArray(options) || !options.length || options.length > 5 || new Set(options).size !== options.length || !options.every(o => typeof o === 'string' && Object.hasOwn(OPTIONS, o)) || (options.length > 1 && options.some(o => EXCLUSIVE.includes(o)))) return [];
       seen.add(key);
       return [{station, year, options}];
     });

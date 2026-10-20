@@ -35,7 +35,8 @@ for e in raw_osm:
     kw=max([float(m.group(1)) for m in output if m] or [0])
     power_tag=kw>0
     dc=any(k.startswith(('socket:type2_combo','socket:chademo','socket:gb_dc')) for k in t)
-    if not kw: kw=60 if dc else 22
+    dc = dc or 'supercharger' in ' '.join(str(t.get(k,'')) for k in ('brand','name','network')).lower()
+    if not kw: kw=50 if dc else 22
     try: posts=max(1,min(int(str(t.get('capacity',2)).split(';')[0]),12))
     except ValueError: posts=2
     posts_tag=str(t.get('capacity','')).isdigit() and 1<=int(t['capacity'])<=12

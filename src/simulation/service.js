@@ -21,7 +21,7 @@ export function calculateRequest(input) {
   }
   for (const s of ds.stations) {
     check(identifier(s.id) && !ids.has(s.id) && nodes.has(s.node), 'Некорректная станция или ссылка на узел.');
-    check(Number.isInteger(s.posts) && number(s.posts, 0, 200) && number(s.sessions, 0, 1e6) && number(s.avgMin, 1, 1440) && number(s.sens, 0, 10), 'Неверные параметры станции.');
+    check(Number.isInteger(s.posts) && number(s.posts, 0, 200) && (ds.demandModel === 'huff-zil-v1' || (number(s.sessions, 0, 1e6) && number(s.avgMin, 1, 1440) && number(s.sens, 0, 10))), 'Неверные параметры станции.');
     check(s.pos && number(s.pos.x, -1e7, 1e7) && number(s.pos.z, -1e7, 1e7), 'Неверные координаты.');
     if (s.site) check(number(s.site.x, -1e7, 1e7) && number(s.site.z, -1e7, 1e7), 'Неверные координаты площадки.');
     check(s.mix && Object.values(s.mix).every(v => number(v, 0, 1)), 'Доли транспорта должны быть от 0 до 1.');
@@ -29,7 +29,7 @@ export function calculateRequest(input) {
   }
   check(Array.isArray(decisions) && decisions.length <= 40, 'Не более 40 шагов плана.');
   for (const d of decisions) {
-    check(ids.has(d.station) && Number.isInteger(d.year) && number(d.year, YEAR_MIN, YEAR_MAX), 'Некорректный шаг плана.');
+    check(ids.has(d.station) && MODEL.decisionYears.includes(d.year), 'Решения разрешены только в 2027 и 2030 годах.');
     check(Array.isArray(d.options) && d.options.length <= 5 && new Set(d.options).size === d.options.length && d.options.every(o => Object.hasOwn(OPTIONS, o)), 'Неизвестные или повторяющиеся действия.');
     check(d.options.length <= 1 || !d.options.some(o => ['none', 'pilot', 'defer'].includes(o)), 'Пилот, подготовка и отказ задаются отдельными шагами.');
   }
@@ -37,7 +37,7 @@ export function calculateRequest(input) {
   check(ds.demandScale == null || number(ds.demandScale, 0.25, 2), 'Множитель спроса от 0,25 до 2.');
   check(ds.attractivenessExponent == null || number(ds.attractivenessExponent, .3, 1), 'Показатель привлекательности от 0,3 до 1.');
   const clean = { demandModel:ds.demandModel, demandScale:ds.demandScale, attractivenessExponent:ds.attractivenessExponent, stations: ds.stations, nodes: ds.nodes, byId: Object.fromEntries(ds.stations.map(s => [s.id, s])) };
-  return { modelVersion: '0.3.0', assumptions: MODEL, options: OPTIONS, year, scenario, decisions,
+  return { modelVersion: '0.3.1', assumptions: MODEL, options: OPTIONS, year, scenario, decisions,
     researchVersion: RESEARCH.version, sourceFiles: RESEARCH.sourceFiles,
     provenance: 'Сценарные параметры, не измерения оператора',
     simulation: evaluate(clean, { year, scenario, decisions }), economics: economics(clean, scenario, decisions, []) };

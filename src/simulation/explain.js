@@ -15,7 +15,7 @@ export function explain(ds, { station, year, scenario, decisions, options }) {
   const st0 = s0.byId[station], st30 = s30.byId[station];
   const node0 = s0.nodes[st0.node], node30 = s30.nodes[st0.node];
   const st = ds.byId[station];
-  const gRise = st30.D0 / Math.max(1, st0.D0);
+  const gRise = growthAt(scenario,Math.max(year,2030));
   const sc = pkg.byScenario[scenario];
   const single = (k) => rec.byKey[k];
   const capexNew = OPTIONS.new_station.capex;
@@ -35,7 +35,7 @@ export function explain(ds, { station, year, scenario, decisions, options }) {
   const gridYear = (() => { for (const y of [2027, 2030, 2035]) { const s = evaluate(ds, { year: y, scenario, decisions: others }); if (s.nodes[st0.node].status === 'constraint') return y; } return null; })();
   const parts = [];
   if(pkgKey(options)!==pkgKey(rec.best.options))parts.push(`Вы выбрали пакет, уступающий рекомендации на <em>${num(Math.max(0,rec.best.score-pkg.score),2)} млн ₽ по score</em>. Это оценка выбранной альтернативы, не обоснование её выгодности.`);
-  parts.push(`Модельная станция ${station}: средняя загрузка <em>${pct(st0.load)}</em>, ${st0.queueUnstable ? 'в отдельные часы расчётная перегрузка' : 'стационарное приближение очереди применимо'}. Заданный сценарий меняет спрос в <em>${num(gRise, 2)}</em> раза к ${Math.max(year, 2030)}. Это не измерения оператора.`);
+  parts.push(`Модельная станция ${station}: средняя загрузка <em>${pct(st0.load)}</em>, ${st0.queueUnstable ? 'в отдельные часы расчётная перегрузка' : 'стационарное приближение очереди применимо'}. Индекс парка к 2026 году — <em>×${num(gRise, 2)}</em> на ${Math.max(year, 2030)} год. Это не измерения оператора.`);
   const rob = `Ожидаемый ЧПС по сценариям ${mln(pkg.expNpv)} (демо), максимальное сожаление ${mln(pkg.maxRegret)}.`;
   parts.push(`Для заданного пакета: вложения ${mln(pkgCapex)}, денежная ЧПС в выбранном сценарии ${mln(sc.npv)}. В низком сценарии ${mln(pkg.byScenario.low.npv)}, в высоком ${mln(pkg.byScenario.high.npv)}.`,
     `Обслуженная доля спроса всей сети в 2030: ${pct(sc.net2030.availability)} против ${pct(sc.netB2030.availability)} без этого шага.`,rob);

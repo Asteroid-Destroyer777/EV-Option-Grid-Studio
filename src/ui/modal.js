@@ -1,7 +1,7 @@
 import { setNavigationOpen, navigationIsOpen } from './navigation.js';
 let active = false, returnFocus, restoreBackground = [], closeSheet;
 // A sheet replaces the map content; the project navigation remains available.
-const background = () => [...document.querySelectorAll('#stage, #ui > :not(#sheet):not(#toast):not(#rail):not(#nav-toggle):not(#nav-backdrop), #rail > :not(.nav), #beaver-launch')];
+const background = () => [...document.querySelectorAll('#stage, #ui > :not(#sheet):not(#topbar):not(#toast):not(#rail):not(#nav-toggle):not(#nav-backdrop), #rail > :not(.nav), #beaver-launch')];
 const onKey = e => {
   if (e.key !== 'Escape' || e.defaultPrevented) return;
   e.preventDefault(); e.stopPropagation(); closeSheet?.();
@@ -37,5 +37,5 @@ export function syncSheetModal(el, close) {
     restoreBackground.forEach(({node}) => { node.inert = true; });
     document.addEventListener('keydown', onKey);
   }
-  if (!navigationIsOpen() && !el.contains(document.activeElement)) el.focus({preventScroll: true});
+  if (!navigationIsOpen() && !el.contains(document.activeElement) && !document.getElementById('topbar')?.contains(document.activeElement)) el.focus({preventScroll: true});
 }

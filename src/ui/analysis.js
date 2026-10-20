@@ -5,7 +5,8 @@ import {datasetKey} from '../simulation/engine.js';
 import {SCENARIOS,MODEL} from '../simulation/params.js';
 import {num,sgn,esc,pkText} from './format.js';
 const entries=new Map();
-const keyFor=kind=>kind+'|'+datasetKey(kind==='sensitivity'?{...ds,demandScale:1}:ds)+'|'+state.scenario+'|'+(ds.byId[state.selectedStation]?state.selectedStation:'ZIL-01');
+const analysisStation=()=>ds.byId[state.analysisStation]?state.analysisStation:ds.byId[state.selectedStation]?state.selectedStation:'ZIL-01';
+const keyFor=kind=>kind+'|'+datasetKey(kind==='sensitivity'?{...ds,demandScale:1}:ds)+'|'+state.scenario+'|'+analysisStation();
 const refresh=()=>setState({analysisTick:(state.analysisTick||0)+1});
 const table=(head,rows)=>`<div class="audit-table"><table class="tbl"><thead><tr>${head.map(t=>`<th>${t}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(t=>`<td>${t}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 export function analysisReady(kind){return entries.has(keyFor(kind));}
@@ -25,7 +26,7 @@ export function requestAnalysis(kind,toast=()=>{}) {
     if(data.error){entry.error=data.error;toast(data.error);}else entry.result=data.result;
     finish();
   };
-  entry.worker.postMessage({...auditInput(),kind,station:ds.byId[state.selectedStation]?state.selectedStation:'ZIL-01'});
+  entry.worker.postMessage({...auditInput(),kind,station:analysisStation()});
   refresh();
 }
 export function cancelAnalysis(kind){const entry=entries.get(keyFor(kind));if(entry?.busy){clearTimeout(entry.timer);entry.worker.terminate();entry.busy=false;entry.error='Расчёт отменён.';refresh();}}
@@ -34,17 +35,20 @@ export function analysisMarkup(kind) {
   let content='';
   if(entry?.result){
     if(flex){
-      const r=entry.result,shown=[...r.rows.slice(0,5)];
-      for(const id of ['defer','none']){const row=r.rows.find(x=>x.first.length===1&&x.first[0]===id);if(row&&!shown.includes(row))shown.push(row);}
-      content=`<p class="note">${esc(r.station)} · первый шаг ${r.year}, пересмотр ${r.reviewYear}. ${esc(r.information)} Это отдельный расчёт с пустого плана: ваши решения не изменяются. Веса 25/50/25; первый шаг одинаков для всех сценариев, ответный шаг выбирается после наблюдения.</p>`+table(['Первый шаг','ЧПС с пересмотром, млн ₽','Без пересмотра','Ценность гибкости','Score','Ответы: низкий / базовый / высокий'],shown.map(row=>[esc(pkText(row.first)),sgn(row.expected,2),sgn(row.fixedExpected,2),sgn(row.flexibility,2),sgn(row.score,2),['low','base','high'].map(sc=>esc(SCENARIOS[sc].short)+': '+esc(pkText(row.responses[sc]))).join('<br>')]));
+      const r=entry.result,shown=[...r.rows];
+
+      content=`<p class="note">Спрос ×${num(r.scale,1)}. ${esc(r.station)} · первый шаг ${r.year}, пересмотр ${r.reviewYear}. ${esc(r.information)} Это отдельный расчёт с пустого плана: ваши решения не изменяются. Веса 25/50/25; первый шаг одинаков для всех сценариев, ответный шаг выбирается после наблюдения.</p>`+table(['Первый шаг','ЧПС с пересмотром, млн ₽','Без пересмотра','Ценность гибкости','Score','Ответы: низкий / базовый / высокий'],shown.map(row=>[esc(pkText(row.first)),sgn(row.expected,2),sgn(row.fixedExpected,2),sgn(row.flexibility,2),sgn(row.score,2),['low','base','high'].map(sc=>esc(SCENARIOS[sc].short)+': '+esc(pkText(row.responses[sc]))).join('<br>')]));
+      if(r.stress){const t=r.stress;content+=`<h3>Проверка спроса ×${num(t.scale,1)}</h3>`+table(['Первый шаг','ЧПС с пересмотром','Без пересмотра','Ценность гибкости'],t.rows.map(row=>[esc(pkText(row.first)),sgn(row.expected,2),sgn(row.fixedExpected,2),sgn(row.flexibility,2)]));}
+      const positive=[r,...(r.stress?[r.stress]:[])].flatMap(t=>t.rows.filter(row=>row.flexibility>1e-6).map(row=>`×${num(t.scale,1)} · ${pkText(row.first)}: +${num(row.flexibility,2)} млн ₽`));
+      content+=`<p class="evidence-note">${positive.length?'Положительная ценность пересмотра: '+esc(positive.join('; '))+'.':'В проверенных пакетах и масштабах положительная ценность гибкости не обнаружена. Она не добавляется искусственно.'} Подготовка и пилот сами по себе не гарантируют выгоды.</p>`;
     }else{
       const {sensitivity,breakpoints:b,boundary}=entry.result;
       content=table(['Спрос','Заново подобранный план','ЧПС, млн ₽','Вложения','Дисконтированная окупаемость'],sensitivity.map(row=>['×'+num(row.scale,1),row.plan.length?row.plan.map(d=>esc(`${d.station} · ${d.year} · ${pkText(d.options)}`)).join('<br>'):`Без вложений: нет шагов с score > ${MODEL.planMinScore}`,sgn(row.npv,2),num(row.capex,1),row.payback==null?'Не достигнута':num(row.payback,1)+' лет']));
-      content+=`<h3>Точки перелома · ${esc(b.station)} · ${b.year} · ${SCENARIOS[b.scenario].short}</h3><p class="note">${boundary?`План меняет решение в найденном интервале спроса ×${num(boundary.low,3)}–×${num(boundary.high,3)}. ${esc(boundary.note)}`:'В проверенном диапазоне граница смены плана не обнаружена.'} Для тарифа и сметы проверяется отдельное расширение, денежная ЧПС относительно «без проекта». Положительная ЧПС отдельного варианта не означает прохождение робастного порога всего плана.</p>`+table(['Параметр','Нулевая ЧПС расширения'],[['Тариф',b.tariff==null?'Нет пересечения в диапазоне 0–100 ₽':num(b.tariff,2)+' ₽/кВт·ч'],['Смета',b.capexScale==null?'Нет пересечения в диапазоне ×0–3':num(b.capexScale,3)+' от исходного CAPEX']]);
+      content+=`<h3>Граница смены всего плана</h3><p class="note">${boundary?`План меняет решение в найденном интервале спроса ×${num(boundary.low,3)}–×${num(boundary.high,3)}. ${esc(boundary.note)}`:'В проверенном диапазоне граница смены плана не обнаружена.'} </p><h3>Безубыточность расширения ${esc(b.station)} · ${b.year} · ${SCENARIOS[b.scenario].short}</h3><p class="note">Для тарифа и сметы проверяется отдельное расширение, денежная ЧПС относительно «без проекта». Положительная ЧПС отдельного варианта не означает прохождение робастного порога всего плана.</p>`+table(['Параметр','Нулевая ЧПС расширения'],[['Тариф',b.tariff==null?'Нет пересечения в диапазоне 0–100 ₽':num(b.tariff,2)+' ₽/кВт·ч'],['Смета',b.capexScale==null?'Нет пересечения в диапазоне ×0–3':num(b.capexScale,3)+' от исходного CAPEX']]);
       content+=table(['Допущение об остатке','ЧПС, млн ₽'],b.terminal.map(r=>[esc(r.method),sgn(r.npv,2)]));
       content+=table(['Привлекательность: показатель k','ЧПС, млн ₽'],b.attractiveness.map(r=>[num(r.k,1),sgn(r.npv,2)]));
       content+='<p class="note">Калибровка спроса 10% не подтверждена телеметрией. Все эти изменения — проверка чувствительности. Тариф станции берётся в приложении оператора; условные 24 ₽ не выдаются за актуальную цену. Базовый остаток 40% не учитывает возраст — рядом показана альтернатива на явно условном 12-летнем сроке.</p>';
     }
   }
-  return `<section class="sec analysis" data-analysis="${kind}"><h3>${flex?'Двухэтапная оценка опций':'Переоптимизация плана при разном спросе'}</h3><p class="note">${flex?'Подготовка площадки оценивается вместе с последующим строительством или отказом в 2030.':'При каждом уровне 50/100/150% план подбирается заново с теми же порогом и ограничениями. ЧПС пустого плана — ноль по определению.'}</p><button class="btn" data-act="analysis-run" data-arg="${kind}" ${entry?.busy?'disabled':''}>${entry?.busy?'Расчёт выполняется…':entry?.result?'Пересчитать':'Рассчитать'}</button>${entry?.busy?` <button class="btn" data-act="analysis-cancel" data-arg="${kind}">Отменить</button><p id="analysis-progress-${kind}" role="status">Расчёт в фоновом потоке; интерфейс доступен.</p>`:''}${entry?.error?`<p role="status">${esc(entry.error)}</p>`:''}${content}</section>`;
+  return `<section class="sec analysis" data-analysis="${kind}"><h3>${flex?'Двухэтапная оценка опций':'Переоптимизация плана при разном спросе'}</h3><p class="note">${flex?'Подготовка площадки оценивается вместе с последующим строительством или отказом в 2030.':'При каждом уровне 50/100/150% план подбирается заново с теми же порогом и ограничениями. ЧПС пустого плана — ноль по определению.'}</p><div class="analysis-controls"><label>Станция анализа<select id="analysis-station-${kind}" data-analysis-station>${ds.stations.map(s=>`<option value="${s.id}" ${s.id===analysisStation()?'selected':''}>${esc(s.id)}</option>`).join('')}</select></label><button class="btn" data-act="analysis-run" data-arg="${kind}" ${entry?.busy?'disabled':''}>${entry?.busy?'Расчёт выполняется…':entry?.result?'Пересчитать':'Рассчитать'}</button>${entry?.busy?` <button class="btn" data-act="analysis-cancel" data-arg="${kind}">Отменить</button><p id="analysis-progress-${kind}" role="status">Расчёт в фоновом потоке; интерфейс доступен.</p>`:''}</div>${entry?.error?`<p role="status">${esc(entry.error)}</p>`:''}${content}</section>`;
 }

@@ -12,7 +12,7 @@ export function auditInput() {
 }
 export async function exportAudit() {
   const { stations } = await import('../data/research-registry.js');
-  const report = { version: '0.3.0', ...auditInput(), assumptions: MODEL, options: OPTIONS,
+  const report = { version: '0.3.1', ...auditInput(), assumptions: MODEL, options: OPTIONS,
     research: {...RESEARCH, city: {...RESEARCH.city, stations}},
     simulation: state.networkState, economics: economics(dataset, state.scenario, state.decisions),
     warning: 'Не прогноз оператора. Сценарные входные параметры требуют подтверждения.' };
@@ -41,7 +41,7 @@ export function passportSheet() {
   const s = sim.byId[id], n = sim.nodes[s.node], e = economics(dataset, state.scenario, state.decisions);
   const table = (heads, rows) => `<div class="audit-table"><table class="tbl"><thead><tr>${heads.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const section = (title, body) => `<section class="sec"><h3>${title}</h3>${body}</section>`;
-  return `<div class="sheet-h"><div><div class="mn">Паспорт расчёта · версия 0.3</div><h1>От исходных данных до решения</h1><p>${id} · ${state.year} · ${SCENARIOS[state.scenario].name}. Все таблицы построены из текущего плана.</p></div></div>
+  return `<div class="sheet-h"><div><div class="mn">Паспорт расчёта · версия 0.3.1</div><h1>От исходных данных до решения</h1><p>${id} · ${state.year} · ${SCENARIOS[state.scenario].name}. Все таблицы построены из текущего плана.</p></div></div>
     <div class="evidence-note"><b>Это сценарный расчёт, не подтверждённый прогноз.</b> География — из открытой карты. Спрос рассчитан моделью Хаффа по 512 ячейкам с 17 конкурентными объектами и внешней альтернативой. Средняя энергия ≈25,2 кВт·ч выведена из опубликованной статистики Росатома. Загрузка 10% — калибровочный якорь из пересказа ответов заказчика; временные профили, мощности сети, цены и рост требуют подтверждения. Движущиеся машины не являются измеренным потоком. До получения телеметрии и технических условий нельзя использовать результат как основание для инвестиций.</div>
     <div class="section-actions"><button class="btn primary" data-act="export-audit">Скачать исходные данные и расчёт</button><button class="btn" data-act="verify-server">Проверить расчёт на сервере</button></div><p id="server-result" class="note"></p>` +
     section('1. Спрос и пропускная способность', `<div class="formula">Вес станции = посты^0,7 × exp(−расстояние / радиус сегмента)\nСпрос станции = Σ спрос ячейки × вес станции / (веса всех станций + внешняя альтернатива)\nСпрос года = базовая оценка × рост электропарка / рост сети × множитель чувствительности\nСпрос в час = спрос за месяц ÷ (365/12) × нормированная доля часа\nСессий в час на станции = посты ÷ max(длительность сессии, энергия / мощность поста)</div><p class="note">Профиль каждого сегмента нормирован до 100%. Смена пика не создаёт дополнительный спрос. При добавлении постов перерасчитывается доля нашей сети и конкурентов. Рост — исследовательские сценарии, не статистический прогноз. С 2031 по 2035 индекс удерживается постоянным: дальше исходная оценка не распространяется. Раздел «Данные исследования» содержит источники и сравнение со старой моделью. ${s.posts} постов; ${num(s.serviceHours * 60)} мин на сессию; ${int(s.D)} запросов в месяц.</p>`) +

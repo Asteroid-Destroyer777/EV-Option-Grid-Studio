@@ -1,15 +1,26 @@
+import {planSensitivity,demandBoundary} from '../simulation/analysis.js';
+import {datasetKey} from '../simulation/engine.js';
+const boundaries=new Map();
 import {economics} from '../simulation/economics.js';
 import {recommend} from '../simulation/recommend.js';
-import {OPTIONS,SCENARIOS} from '../simulation/params.js';
+import {MODEL,OPTIONS,SCENARIOS} from '../simulation/params.js';
 
 const aliases=[['expansion',/расшир|добав.{0,10}пост/i],['new_station',/нов.{0,12}(станци|эзс)|строительств/i],['storage',/накопител|батаре/i],['grid_upgrade',/усилен.{0,10}сет|сет.{0,10}усилен/i],['local_gen',/солн|генерац/i],['defer',/отлож|подготов/i],['pilot',/пилот/i],['none',/ничего не|без (влож|проект)/i]];
 export function optionContext(input,selectedStation,question) {
   const ds={...input.dataset,byId:Object.fromEntries(input.dataset.stations.map(s=>[s.id,s]))};
   const explicit=question.match(/ZIL-0[1-6]/i)?.[0].toUpperCase();
-  const station=ds.byId[explicit]?explicit:ds.byId[selectedStation]?selectedStation:ds.stations[0].id;
+  const station=ds.byId[explicit]?explicit:ds.byId[selectedStation]?selectedStation:null;
+  if(/границ.{0,30}(спрос|план)|при каком.{0,20}спрос|точк.{0,10}перелом/i.test(question)){
+    if(ds.stations.length>6)return {scope:'network',directAnswer:'Для расширенного набора станций порог нужно рассчитать в фоновом анализе: «Данные исследования» → расчёт чувствительности. Без расчёта численную границу назвать нельзя.'};
+    const key=datasetKey({...ds,demandScale:1})+'|'+input.scenario;
+    let boundary=boundaries.get(key);
+    if(!boundaries.has(key)){boundary=demandBoundary(ds,input.scenario,planSensitivity(ds,input.scenario));if(boundaries.size>=8)boundaries.delete(boundaries.keys().next().value);boundaries.set(key,boundary);}
+    return {scope:'network',boundary,directAnswer:boundary?`Весь план меняет решение в локальном интервале масштаба спроса ×${boundary.low.toFixed(3)}–×${boundary.high.toFixed(3)}. Это граница ограниченного алгоритма, а не доверительный интервал. Проверить: «Данные исследования» → «Граница смены всего плана». Тариф и смета при этом не изменялись.`:'В проверенном диапазоне спроса ×0,5–×1,5 граница смены всего плана не обнаружена. Проверить: «Данные исследования» → расчёт чувствительности.'};
+  }
+  if(!station)return {scope:'network',selectionRequired:true,criteria:{minimumScore:MODEL.planMinScore,regretWeight:MODEL.regretWeight,maxStations:MODEL.planMaxStations},directAnswer:`Станция не выбрана: сейчас рассматривается вся сеть. Автоматический план принимает шаги с критерием «ожидаемая ЧПС − ${MODEL.regretWeight} × максимальное сожаление» выше ${MODEL.planMinScore} млн ₽, до ${MODEL.planMaxStations} станций за шаг. Пустой план не доказывает отрицательную ЧПС всех отдельных вариантов. Выберите ЭЗС для сравнения её восьми вариантов; для границы всего плана откройте «Данные исследования» → расчёт чувствительности.`};
   const year=Number(question.match(/\b(202[6-9]|203[0-5])\b/)?.[0]||input.year);
   const scenario=/высок/i.test(question)?'high':/низк/i.test(question)?'low':/базов/i.test(question)?'base':input.scenario;
-  if(year===2035)return {station,year,observationOnly:true,note:'2035 — конец горизонта; выбор новых инвестиций отключён. Для сравнения укажите 2030.'};
+  if(!MODEL.decisionYears.includes(year))return {station,year,observationOnly:true,directAnswer:'Инвестиционные решения разрешены в 2027 и 2030; остальные годы показывают состояние сети. Укажите один из этих годов для сравнения вариантов.'};
   const baseline=(input.decisions||[]).filter(d=>!(d.station===station&&d.year===year));
   const variants=Object.keys(OPTIONS).map(option=>({option,name:OPTIONS[option].name,
     byScenario:Object.fromEntries(Object.keys(SCENARIOS).map(sc=>{
